@@ -113,13 +113,30 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertEqual(config["locale"], "zh-CN")
         self.assertEqual(self.run_cli("validate").returncode, 0)
 
-    def make_fake_codex(self, exit_code: int) -> Path:
+    def make_fake_codex(self, exit_code: int, report: Path | None = None) -> Path:
+        update = ""
+        if report is not None:
+            escaped_report = str(report).replace("'", "\\'")
+            code = (
+                "import time; from pathlib import Path; "
+                f"Path(r'{escaped_report}').write_text(f'# updated {{time.time_ns()}}\\n', "
+                "encoding='utf-8')"
+            )
+            update = f'"{sys.executable}" -c "{code}"\n'
         if os.name == "nt":
             path = self.root / f"codex-{exit_code}.cmd"
-            path.write_text(f"@echo fake codex\r\n@exit /b {exit_code}\r\n", encoding="utf-8")
+            path.write_text(
+                "@echo fake codex\r\n"
+                + ("@" + update.replace("\n", "\r\n") if update else "")
+                + f"@exit /b {exit_code}\r\n",
+                encoding="utf-8",
+            )
         else:
             path = self.root / f"codex-{exit_code}"
-            path.write_text(f"#!/bin/sh\necho fake codex\nexit {exit_code}\n", encoding="utf-8")
+            path.write_text(
+                "#!/bin/sh\necho fake codex\n" + update + f"exit {exit_code}\n",
+                encoding="utf-8",
+            )
             path.chmod(path.stat().st_mode | stat.S_IXUSR)
         return path
 
@@ -134,6 +151,18 @@ class CliIntegrationTests(unittest.TestCase):
             "--no-writable-root",
         )
         self.assertEqual(initialized.returncode, 0, initialized.stderr)
+        busy_lock = self.config.parent / "weekly.lock"
+        busy_lock.write_text("test", encoding="ascii")
+        busy = subprocess.run(
+            [sys.executable, str(RUNNER), "weekly", "--dry-run"],
+            text=True,
+            capture_output=True,
+            env=self.environment,
+            check=False,
+        )
+        self.assertEqual(busy.returncode, 0, busy.stderr)
+        self.assertIn('"busy": true', busy.stdout)
+        busy_lock.unlink()
         failure = subprocess.run(
             [sys.executable, str(RUNNER), "weekly", "--codex", str(self.make_fake_codex(7))],
             text=True,
@@ -142,9 +171,28 @@ class CliIntegrationTests(unittest.TestCase):
             check=False,
         )
         self.assertNotEqual(failure.returncode, 0)
+        failure_log = (self.config.parent / "logs" / "weekly.log").read_text(encoding="utf-8")
+        self.assertIn("failed=", failure_log)
         self.assertFalse((self.config.parent / "routines.json").exists())
-        success = subprocess.run(
+        unchanged = subprocess.run(
             [sys.executable, str(RUNNER), "weekly", "--codex", str(self.make_fake_codex(0))],
+            text=True,
+            capture_output=True,
+            env=self.environment,
+            check=False,
+        )
+        self.assertNotEqual(unchanged.returncode, 0)
+        self.assertIn("did not update the expected report", unchanged.stderr)
+        self.assertFalse((self.config.parent / "routines.json").exists())
+        weekly_report = vault / "10-memory" / "weekly-brief.md"
+        success = subprocess.run(
+            [
+                sys.executable,
+                str(RUNNER),
+                "weekly",
+                "--codex",
+                str(self.make_fake_codex(0, weekly_report)),
+            ],
             text=True,
             capture_output=True,
             env=self.environment,
@@ -156,8 +204,15 @@ class CliIntegrationTests(unittest.TestCase):
 
         broken = vault / "broken.md"
         broken.write_text("# Broken\n\n[[missing-note]]\n", encoding="utf-8")
+        monthly_report = vault / "10-memory" / "monthly-audit.md"
         unhealthy_monthly = subprocess.run(
-            [sys.executable, str(RUNNER), "monthly", "--codex", str(self.make_fake_codex(0))],
+            [
+                sys.executable,
+                str(RUNNER),
+                "monthly",
+                "--codex",
+                str(self.make_fake_codex(0, monthly_report)),
+            ],
             text=True,
             capture_output=True,
             env=self.environment,
@@ -168,7 +223,13 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertNotIn("last_monthly_period", state)
         broken.unlink()
         healthy_monthly = subprocess.run(
-            [sys.executable, str(RUNNER), "monthly", "--codex", str(self.make_fake_codex(0))],
+            [
+                sys.executable,
+                str(RUNNER),
+                "monthly",
+                "--codex",
+                str(self.make_fake_codex(0, monthly_report)),
+            ],
             text=True,
             capture_output=True,
             env=self.environment,

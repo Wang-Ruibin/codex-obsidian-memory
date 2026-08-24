@@ -72,7 +72,7 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.2.0")
+        self.assertEqual(manifest["version"], "0.3.0")
 
     def test_agents_is_single_operational_source(self) -> None:
         self.assertTrue((ROOT / "AGENTS.md").is_file())

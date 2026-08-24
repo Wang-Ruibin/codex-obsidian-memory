@@ -30,10 +30,8 @@ if ($Uninstall) {
 }
 
 $python = Get-Command py.exe -ErrorAction SilentlyContinue
-$pythonPrefix = '-3 '
 if ($null -eq $python) {
     $python = Get-Command python3 -ErrorAction SilentlyContinue
-    $pythonPrefix = ''
 }
 if ($null -eq $python) {
     throw 'Python 3.11 or newer was not found.'
@@ -44,13 +42,21 @@ New-Item -ItemType Directory -Path (Join-Path $automationRoot 'prompts') -Force 
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'memory_core.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'routine_runner.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'validate_vault.py') -Destination $automationRoot -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'run-hidden.vbs') -Destination $automationRoot -Force
 $pluginRoot = Split-Path -Parent $PSScriptRoot
 Copy-Item -Path (Join-Path $pluginRoot 'assets\prompts\*') -Destination (Join-Path $automationRoot 'prompts') -Recurse -Force
 
 $runner = Join-Path $automationRoot 'routine_runner.py'
-$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2)
-$weeklyAction = New-ScheduledTaskAction -Execute $python.Source -Argument ($pythonPrefix + '"' + $runner + '" weekly') -WorkingDirectory $automationRoot
-$monthlyAction = New-ScheduledTaskAction -Execute $python.Source -Argument ($pythonPrefix + '"' + $runner + '" monthly') -WorkingDirectory $automationRoot
+$hiddenRunner = Join-Path $automationRoot 'run-hidden.vbs'
+$wscript = Join-Path $env:SystemRoot 'System32\wscript.exe'
+if (-not (Test-Path -LiteralPath $wscript)) {
+    throw 'wscript.exe was not found.'
+}
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -Hidden
+$weeklyArguments = '"{0}" "{1}" "{2}" weekly' -f $hiddenRunner, $python.Source, $runner
+$monthlyArguments = '"{0}" "{1}" "{2}" monthly' -f $hiddenRunner, $python.Source, $runner
+$weeklyAction = New-ScheduledTaskAction -Execute $wscript -Argument $weeklyArguments -WorkingDirectory $automationRoot
+$monthlyAction = New-ScheduledTaskAction -Execute $wscript -Argument $monthlyArguments -WorkingDirectory $automationRoot
 $weeklyTrigger = New-ScheduledTaskTrigger -Daily -At '09:00'
 $monthlyTrigger = New-ScheduledTaskTrigger -Daily -At '09:15'
 

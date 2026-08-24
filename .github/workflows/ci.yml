@@ -20,3 +20,5 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m unittest discover -s tests -v
+      - if: runner.os == 'Linux'
+        run: bash -n plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh

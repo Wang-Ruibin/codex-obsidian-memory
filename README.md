@@ -125,13 +125,27 @@ Use `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings instead 
 
 ## Optional routines
 
-Weekly briefs and monthly audits are disabled by default. On Windows, review and run:
+Weekly briefs and monthly audits are disabled by default.
+
+### Windows
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
 ```
 
-Successful ISO weeks/months are deduplicated; failures do not advance state. Monthly audits may recommend archival but never delete, move or archive notes automatically.
+Windows tasks launch through a windowless `wscript.exe` wrapper. Successful ISO weeks/months are deduplicated; failures do not advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
+
+### Linux with systemd user services
+
+```bash
+bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
+```
+
+The installer requires no `sudo`. It creates persistent user timers at 09:00 and 09:15, pins the discovered `python3` and `codex` paths, and runs in the background with runner logs plus the systemd user journal. Remove only these units and their stable copy with `--uninstall`.
+
+### macOS or Linux without user systemd
+
+Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
 
 ## Troubleshooting and limitations
 

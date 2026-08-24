@@ -125,13 +125,27 @@ codex plugin remove codex-obsidian-memory@codex-obsidian-memory
 
 ## 可选周期任务
 
-周报和月检默认关闭。Windows 用户审阅后运行：
+周报和月检默认关闭。
+
+### Windows
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
 ```
 
-成功的 ISO 周/月会去重；失败不推进状态。月检只能建议归档，不得自动删除、移动或归档笔记。
+Windows 任务通过无窗口 `wscript.exe` 包装器启动。成功的 ISO 周/月会去重；失败不推进状态。只有目标报告确实更新且知识库仍通过图谱验证，Codex 的成功退出才记为周期成功。月检只能建议归档，不得自动删除、移动或归档笔记。
+
+### 使用 systemd user service 的 Linux
+
+```bash
+bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
+```
+
+安装器不需要 `sudo`。它会创建每天 09:00 和 09:15 的持久用户 timer，固定安装时发现的 `python3` 与 `codex` 路径，并在后台运行；错误既写 runner 日志，也保留在 systemd user journal。使用 `--uninstall` 只删除这些 unit 和稳定副本。
+
+### macOS 或没有 user systemd 的 Linux
+
+使用 launchd、cron 或其他用户级调度器运行 `routine_runner.py weekly` 和 `monthly`。使用可执行文件绝对路径，并保持最小权限、失败重试和“验证前不记成功”的相同规则。
 
 ## 故障排查与限制
 
