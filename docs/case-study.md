@@ -6,14 +6,14 @@ This plugin generalizes and sanitizes a real three-day Codex session that began 
 
 ## Build sequence
 
-1. **Store durable information, not transcripts.** Keep stable preferences, context, decisions, verified outcomes, reusable failures and next steps; reject credentials and raw logs.
-2. **Use GitHub as project identity.** An early inventory mistook 23 visible public repositories for the account total. The authorization gap established the rule that current visibility is not proof of completeness.
-3. **Keep machine rules outside project memory.** SSH, WSL and sandbox behavior belong to user-level execution guidance.
-4. **Replace passive instructions with hooks.** A blind task skipped memory loading, so deterministic handlers were added for `UserPromptSubmit`, post-compaction `SessionStart`, `SubagentStart` and `Stop`.
-5. **Organize the graph around repositories.** One GitHub repository owns one folder and one project home; branch progress belongs only to an exact `working_branch` page.
-6. **Use exact frontmatter.** Body substring matching caused plausible collisions such as `RAG` and `Agent-RAG`.
-7. **Gate by origin, not only the index.** New eligible repositories receive global memory and a template even before registration.
-8. **Make routines non-destructive.** Weekly and monthly state advances only after success; audits may recommend archival but never perform it.
+1. Store durable information, not transcripts: keep stable preferences, context, decisions, verified outcomes, reusable failures and next steps; reject credentials and raw logs.
+2. Use GitHub as project identity: an early inventory mistook 23 visible public repositories for the account total. The authorization gap established the rule that current visibility is not proof of completeness.
+3. Keep machine rules outside project memory: SSH, WSL and sandbox behavior belong to user-level execution guidance.
+4. Replace passive instructions with hooks: a blind task skipped memory loading, so deterministic handlers were added for `UserPromptSubmit`, post-compaction `SessionStart`, `SubagentStart` and `Stop`.
+5. Organize the graph around repositories: one GitHub repository owns one folder and one project home; branch progress belongs only to an exact `working_branch` page.
+6. Use exact frontmatter: body substring matching caused plausible collisions such as `RAG` and `Agent-RAG`.
+7. Gate by origin, not only the index: new eligible repositories receive global memory and a template even before registration.
+8. Make routines non-destructive: weekly and monthly state advances only after success; audits may recommend archival but never perform it.
 
 ## Verified source snapshot
 

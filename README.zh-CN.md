@@ -175,3 +175,7 @@ bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
 ## 许可证
 
 [MIT](LICENSE)。版权所有 © 2026 Wang-Ruibin。
+
+## 喜欢这个项目？
+
+如果它让 Codex 记得更清楚，欢迎送它一颗小星星 ⭐，这个记忆库会很开心的！✨

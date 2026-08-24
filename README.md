@@ -175,3 +175,7 @@ The plugin resolves every note inside the configured vault, redacts common secre
 ## License
 
 [MIT](LICENSE). Copyright © 2026 Wang-Ruibin.
+
+## Like this project?
+
+If it gave Codex a better memory, a little ⭐ would make this vault very happy. ✨

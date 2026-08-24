@@ -78,6 +78,19 @@ class DocumentationTests(unittest.TestCase):
         self.assertTrue((ROOT / "AGENTS.md").is_file())
         self.assertFalse((ROOT / "AGENTS.zh-CN.md").exists())
 
+    def test_chinese_docs_avoid_ambiguous_bold_boundaries(self) -> None:
+        case_study = (ROOT / "docs" / "zh-CN" / "case-study.md").read_text(
+            encoding="utf-8-sig"
+        )
+        self.assertNotRegex(case_study, r"\*\*[^*]+\*\*[^\s]")
+
+    def test_readmes_end_with_star_invitation(self) -> None:
+        self.assertIn("a little ⭐", (ROOT / "README.md").read_text(encoding="utf-8-sig"))
+        self.assertIn(
+            "一颗小星星 ⭐",
+            (ROOT / "README.zh-CN.md").read_text(encoding="utf-8-sig"),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
