@@ -45,8 +45,7 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'memory_core.py') -Destination $
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'routine_runner.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'validate_vault.py') -Destination $automationRoot -Force
 $pluginRoot = Split-Path -Parent $PSScriptRoot
-Copy-Item -LiteralPath (Join-Path $pluginRoot 'assets\prompts\weekly.md') -Destination (Join-Path $automationRoot 'prompts\weekly.md') -Force
-Copy-Item -LiteralPath (Join-Path $pluginRoot 'assets\prompts\monthly.md') -Destination (Join-Path $automationRoot 'prompts\monthly.md') -Force
+Copy-Item -Path (Join-Path $pluginRoot 'assets\prompts\*') -Destination (Join-Path $automationRoot 'prompts') -Recurse -Force
 
 $runner = Join-Path $automationRoot 'routine_runner.py'
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2)

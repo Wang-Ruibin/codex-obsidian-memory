@@ -17,11 +17,13 @@ from memory_core import atomic_write, integration_dir, load_config, vault_path
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 
 
-def prompt_path(routine: str) -> Path:
-    installed_copy = Path(__file__).resolve().parent / "prompts" / f"{routine}.md"
+def prompt_path(routine: str, locale: str) -> Path:
+    installed_copy = (
+        Path(__file__).resolve().parent / "prompts" / locale / f"{routine}.md"
+    )
     if installed_copy.is_file():
         return installed_copy
-    return PLUGIN_ROOT / "assets" / "prompts" / f"{routine}.md"
+    return PLUGIN_ROOT / "assets" / "prompts" / locale / f"{routine}.md"
 
 
 def validator_path() -> Path:
@@ -93,7 +95,8 @@ def main() -> int:
         codex = args.codex or shutil.which("codex")
         if not codex:
             raise ValueError("Codex executable was not found on PATH.")
-        prompt_file = prompt_path(args.routine)
+        locale = str(config.get("locale") or "en")
+        prompt_file = prompt_path(args.routine, locale)
         if not prompt_file.is_file():
             raise ValueError(f"Routine prompt was not found: {prompt_file}")
         output_key = "weekly_brief" if args.routine == "weekly" else "monthly_audit"

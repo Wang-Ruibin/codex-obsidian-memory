@@ -1,6 +1,6 @@
 {
   "name": "codex-obsidian-memory",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Local-first Codex memory backed by Obsidian / 基于 Obsidian 的本地优先 Codex 长期记忆。",
   "author": {
     "name": "Wang-Ruibin",

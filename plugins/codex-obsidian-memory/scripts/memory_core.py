@@ -49,6 +49,7 @@ def load_config() -> dict[str, Any]:
     paths = dict(DEFAULT_PATHS)
     paths.update(document.get("paths") or {})
     document["paths"] = paths
+    document.setdefault("locale", "en")
     return document
 
 

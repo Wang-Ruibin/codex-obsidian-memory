@@ -26,24 +26,27 @@ from memory_core import (
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
-VAULT_TEMPLATE = PLUGIN_ROOT / "assets" / "vault-template"
+VAULT_TEMPLATE_ROOT = PLUGIN_ROOT / "assets" / "vault-template"
 
 
-def install_template(vault: Path, force: bool) -> tuple[int, int]:
+def install_template(vault: Path, force: bool, locale: str) -> tuple[int, int]:
     created = 0
     skipped = 0
-    for source in sorted(VAULT_TEMPLATE.rglob("*"), key=lambda path: str(path).casefold()):
-        relative = source.relative_to(VAULT_TEMPLATE)
-        target = vault / relative
-        if source.is_dir():
-            target.mkdir(parents=True, exist_ok=True)
-            continue
-        if target.exists() and not force:
-            skipped += 1
-            continue
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
-        created += 1
+    for template_root in (VAULT_TEMPLATE_ROOT / "shared", VAULT_TEMPLATE_ROOT / locale):
+        if not template_root.is_dir():
+            raise ValueError(f"Vault template locale is unavailable: {locale}")
+        for source in sorted(template_root.rglob("*"), key=lambda path: str(path).casefold()):
+            relative = source.relative_to(template_root)
+            target = vault / relative
+            if source.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            if target.exists() and not force:
+                skipped += 1
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            created += 1
     return created, skipped
 
 
@@ -165,11 +168,16 @@ def command_init(args: argparse.Namespace) -> int:
     paths = validated_paths(path_overrides)
     if args.no_template and args.force_template:
         raise ValueError("--no-template and --force-template cannot be combined.")
-    created, skipped = (0, 0) if args.no_template else install_template(vault, args.force_template)
+    created, skipped = (
+        (0, 0)
+        if args.no_template
+        else install_template(vault, args.force_template, args.locale)
+    )
     config = {
         "version": 1,
         "enabled": True,
         "vault": str(vault),
+        "locale": args.locale,
         "scope_mode": args.scope_mode,
         "github_owners": owners,
         "included_repositories": [],
@@ -185,7 +193,7 @@ def command_init(args: argparse.Namespace) -> int:
         writable, writable_added = configure_writable_root(vault)
     config["writable_root_added"] = writable_added
     save_config(config)
-    print(f"enabled=True\nvault={vault}\ngithub_owners={','.join(owners)}")
+    print(f"enabled=True\nvault={vault}\nlocale={args.locale}\ngithub_owners={','.join(owners)}")
     print(f"template_files_written={created}\ntemplate_files_skipped={skipped}")
     print(f"writable_root={writable}")
     print("next=Review and trust the plugin hooks with /hooks, then start a new thread.")
@@ -202,6 +210,7 @@ def command_status(_: argparse.Namespace) -> int:
         "enabled": bool(config.get("enabled")),
         "vault": vault_text,
         "vault_exists": bool(vault and vault.is_dir()),
+        "locale": config.get("locale", "en"),
         "scope_mode": config.get("scope_mode"),
         "github_owners": config.get("github_owners", []),
         "included_repositories": config.get("included_repositories", []),
@@ -282,6 +291,7 @@ def build_parser() -> argparse.ArgumentParser:
     init = subparsers.add_parser("init", help="Create or adopt a vault and enable memory.")
     init.add_argument("--vault", type=Path, required=True)
     init.add_argument("--github-owner", action="append", required=True)
+    init.add_argument("--locale", choices=("en", "zh-CN"), default="en")
     init.add_argument("--exclude", action="append")
     init.add_argument("--scope-mode", choices=("github-owner", "indexed-only"), default="github-owner")
     init.add_argument(

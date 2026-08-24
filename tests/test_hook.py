@@ -21,7 +21,12 @@ class HookRoutingTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory()
         self.vault = Path(self.temporary.name) / "vault"
-        shutil.copytree(PLUGIN / "assets" / "vault-template", self.vault)
+        shutil.copytree(PLUGIN / "assets" / "vault-template" / "shared", self.vault)
+        shutil.copytree(
+            PLUGIN / "assets" / "vault-template" / "en",
+            self.vault,
+            dirs_exist_ok=True,
+        )
         project_dir = self.vault / "20-projects" / "demo"
         project_dir.mkdir(parents=True)
         (project_dir / "demo.md").write_text(

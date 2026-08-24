@@ -94,6 +94,25 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertFalse((vault / "00-memory-home.md").exists())
         self.assertEqual(self.run_cli("validate").returncode, 0)
 
+    def test_simplified_chinese_locale_installs_matching_schema(self) -> None:
+        vault = self.root / "zh-vault"
+        result = self.run_cli(
+            "init",
+            "--vault",
+            str(vault),
+            "--github-owner",
+            "Example",
+            "--locale",
+            "zh-CN",
+            "--no-writable-root",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        home = (vault / "00-memory-home.md").read_text(encoding="utf-8")
+        self.assertIn("# 记忆首页", home)
+        config = json.loads(self.config.read_text(encoding="utf-8"))
+        self.assertEqual(config["locale"], "zh-CN")
+        self.assertEqual(self.run_cli("validate").returncode, 0)
+
     def make_fake_codex(self, exit_code: int) -> Path:
         if os.name == "nt":
             path = self.root / f"codex-{exit_code}.cmd"
