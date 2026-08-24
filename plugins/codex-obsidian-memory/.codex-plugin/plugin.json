@@ -1,9 +1,9 @@
 {
   "name": "codex-obsidian-memory",
-  "version": "0.1.1",
-  "description": "Local-first, lifecycle-aware long-term memory for Codex, backed by an Obsidian vault.",
+  "version": "0.1.2",
+  "description": "Local-first Codex memory backed by Obsidian / 基于 Obsidian 的本地优先 Codex 长期记忆。",
   "author": {
-    "name": "Wang Ruibin",
+    "name": "Wang-Ruibin",
     "url": "https://github.com/Wang-Ruibin"
   },
   "homepage": "https://github.com/Wang-Ruibin/codex-obsidian-memory#readme",
@@ -12,17 +12,17 @@
   "keywords": ["codex", "obsidian", "long-term-memory", "hooks", "knowledge-management"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Codex Obsidian Memory",
-    "shortDescription": "Local-first project memory backed by Obsidian.",
-    "longDescription": "Turn an Obsidian vault into durable, project-scoped memory that Codex loads at task start and reviews at task end.",
-    "developerName": "Wang Ruibin",
+    "displayName": "Codex Obsidian Memory / 长期记忆",
+    "shortDescription": "Local Obsidian memory / 本地 Obsidian 记忆",
+    "longDescription": "Turn Obsidian into durable, project-scoped Codex memory / 将 Obsidian 变成持久、按项目隔离的 Codex 长期记忆。",
+    "developerName": "misakimei0331",
     "category": "Productivity",
     "capabilities": ["Read", "Write", "Automation"],
     "websiteURL": "https://github.com/Wang-Ruibin/codex-obsidian-memory",
     "defaultPrompt": [
-      "Set up an Obsidian long-term memory vault for my GitHub projects.",
-      "Check the status of my Obsidian memory integration.",
-      "Audit my project memory graph for broken or stale notes."
+      "Set up Obsidian memory for my GitHub projects.",
+      "为我的 GitHub 项目建立 Obsidian 长期记忆。",
+      "Audit the memory graph / 检查长期记忆图谱。"
     ],
     "brandColor": "#7C3AED"
   }

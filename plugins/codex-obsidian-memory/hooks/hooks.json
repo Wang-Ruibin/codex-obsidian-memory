@@ -1,9 +1,9 @@
 {
-  "description": "Load and review project-scoped Obsidian memory.",
+  "description": "Load and review project-scoped Obsidian memory / 加载并检查项目范围的 Obsidian 记忆。",
   "hooks": {
-    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Loading Obsidian project memory", "timeout": 20, "additionalContextLimit": 16000}]}],
-    "SessionStart": [{"matcher": "^compact$", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Reloading Obsidian memory after compaction", "timeout": 20, "additionalContextLimit": 16000}]}],
-    "SubagentStart": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Loading Obsidian memory for subagent", "timeout": 20, "additionalContextLimit": 16000}]}],
-    "Stop": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Reviewing durable Obsidian memory", "timeout": 20}]}]
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Loading Obsidian memory / 加载 Obsidian 记忆", "timeout": 20, "additionalContextLimit": 16000}]}],
+    "SessionStart": [{"matcher": "^compact$", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Reloading memory / 压缩后重载记忆", "timeout": 20, "additionalContextLimit": 16000}]}],
+    "SubagentStart": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Loading subagent memory / 加载子 agent 记忆", "timeout": 20, "additionalContextLimit": 16000}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Reviewing durable memory / 检查持久记忆", "timeout": 20}]}]
   }
 }

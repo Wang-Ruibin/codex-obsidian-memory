@@ -5,21 +5,23 @@ tags:
   - graph/knowledge
 ---
 
-# Global memory
+# Global memory / 全局记忆
 
-← [[00-memory-home|Memory home]]
+← [[00-memory-home|Memory home / 记忆首页]]
 
 Keep only facts that apply across repositories.
 
-## Stable preferences
+只保留跨仓库适用的事实。
 
-- None recorded yet.
+## Stable preferences / 稳定偏好
 
-## Cross-project decisions
+- None recorded yet. / 暂无记录。
 
-- One GitHub repository owns one project folder and one project home.
-- Branch-specific progress belongs on an exact `working_branch` page.
+## Cross-project decisions / 跨项目决策
 
-## Reusable failure lessons
+- One GitHub repository owns one project folder and one project home. / 一个 GitHub 仓库只拥有一个项目文件夹和一个项目主页。
+- Branch-specific progress belongs on an exact `working_branch` page. / 分支特有进度只属于精确 `working_branch` 页面。
 
-- None recorded yet.
+## Reusable failure lessons / 可复用失败经验
+
+- None recorded yet. / 暂无记录。
