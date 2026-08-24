@@ -81,6 +81,7 @@ def resolve_scope(event: dict[str, Any], config: dict[str, Any], vault: Path) ->
 
 
 def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
+    vault = vault.resolve()
     chunks: list[str] = []
     included: set[Path] = set()
 

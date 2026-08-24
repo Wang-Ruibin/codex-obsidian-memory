@@ -1,6 +1,6 @@
 {
   "name": "codex-obsidian-memory",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local-first, lifecycle-aware long-term memory for Codex, backed by an Obsidian vault.",
   "author": {
     "name": "Wang Ruibin",
