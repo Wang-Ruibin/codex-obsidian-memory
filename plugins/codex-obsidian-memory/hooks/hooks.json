@@ -1,0 +1,9 @@
+{
+  "description": "Load and review project-scoped Obsidian memory.",
+  "hooks": {
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Loading Obsidian project memory", "timeout": 20, "additionalContextLimit": 16000}]}],
+    "SessionStart": [{"matcher": "^compact$", "hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Reloading Obsidian memory after compaction", "timeout": 20, "additionalContextLimit": 16000}]}],
+    "SubagentStart": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Loading Obsidian memory for subagent", "timeout": 20, "additionalContextLimit": 16000}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "python3 \"${PLUGIN_ROOT}/scripts/hook.py\"", "commandWindows": "py.exe \"%PLUGIN_ROOT%\\scripts\\hook.py\"", "statusMessage": "Reviewing durable Obsidian memory", "timeout": 20}]}]
+  }
+}

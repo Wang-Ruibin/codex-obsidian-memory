@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Obsidian Memory"
+  short_description: "Build and manage local Obsidian memory for Codex"
+  brand_color: "#7C3AED"
+  default_prompt: "Use $codex-obsidian-memory to set up a local Obsidian long-term memory vault."
+policy:
+  allow_implicit_invocation: true
