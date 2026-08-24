@@ -1,6 +1,6 @@
 # 贡献指南
 
-[English](CONTRIBUTING.md)
+[English](../../CONTRIBUTING.md)
 
 感谢你帮助改进 Codex Obsidian Memory。
 

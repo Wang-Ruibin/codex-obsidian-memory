@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
-**English** · [简体中文](README.zh-CN.md) · [Case study](docs/case-study.md) · [Security](SECURITY.md)
+English · [简体中文](README.zh-CN.md) · [Documentation](#documentation) · [Security](SECURITY.md)
 
 </div>
 
@@ -19,15 +19,17 @@ No vector database. No cloud memory service. No credentials in the vault.
 > [!IMPORTANT]
 > This is an early public release. Back up an existing vault and review every command in `/hooks` before trusting it.
 
-## Why this exists
+## Core capabilities
 
-- **Local-first:** memory stays in Markdown files you own.
-- **Repository-scoped:** exact GitHub `origin` decides eligibility; ordinary folders stay silent.
-- **Branch-aware:** only the page whose `working_branch` matches the checkout is loaded.
-- **Graph-friendly:** one repository, one folder, one project home; branch pages live beneath it.
-- **Selective:** retain decisions, outcomes, reusable failures and next steps, not transcripts.
-- **Reversible:** disable or uninstall the integration without deleting the vault.
-- **Dependency-light:** runtime code uses only the Python standard library.
+| Capability | What it means for users |
+|---|---|
+| Local-first | Memory stays in Markdown files you own. |
+| Repository scope | Exact GitHub `origin` decides eligibility; ordinary folders stay silent. |
+| Branch isolation | Only the page whose `working_branch` matches the checkout is loaded. |
+| Clear graph | One repository has one folder and one project home, with branch pages beneath it. |
+| Selective retention | Decisions, outcomes, reusable failures and next steps are kept; transcripts are not. |
+| Reversible setup | Disable or uninstall the integration without deleting the vault. |
+| Lightweight runtime | Runtime code uses only the Python standard library. |
 
 ## Quick start
 
@@ -149,28 +151,27 @@ Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another
 
 ## Troubleshooting and limitations
 
-- **Hook is silent:** run `status`, verify the GitHub `origin`, and inspect exclusions.
-- **Hook is installed but skipped:** trust it in `/hooks`, then start a new conversation.
-- **Wrong branch context:** check `git branch --show-current` and exact `working_branch` frontmatter.
-- Detached HEAD has no exact branch page.
-- Secret redaction is defense in depth, not a complete secret scanner.
-- Scheduled reports require a working non-interactive Codex login.
+| Symptom or limitation | What to do |
+|---|---|
+| Hook is silent | Run `status`, verify the GitHub `origin`, and inspect exclusions. |
+| Hook is installed but skipped | Trust it in `/hooks`, then start a new conversation. |
+| Wrong branch context | Check `git branch --show-current` and exact `working_branch` frontmatter. |
+| Detached HEAD | No exact branch page can be selected until a branch is checked out. |
+| Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
+| Scheduled reports | The machine needs a working non-interactive Codex login. |
 
-## Security and provenance
+## Security
 
 The plugin resolves every note inside the configured vault, redacts common secret patterns before injection, and removes a writable root only when setup recorded that it added it. Read [SECURITY.md](SECURITY.md).
 
-This repository packages a three-day, end-to-end build of a real memory vault. The decisions, corrections and verified snapshot are documented in the [case study](docs/case-study.md).
+## Documentation
 
-## Development
-
-```bash
-python -m unittest discover -s tests -v
-python plugins/codex-obsidian-memory/scripts/memoryctl.py --help
-```
-
-Keep English and Simplified Chinese documents structurally aligned. See [CONTRIBUTING.md](CONTRIBUTING.md).
+- [Migration guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md)
+- [Automation guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/automation.md)
+- [Security policy](SECURITY.md)
+- [Build case study](docs/case-study.md)
+- [Contributing guide](CONTRIBUTING.md)
 
 ## License
 
-[MIT](LICENSE). Copyright © 2026 Wang-Ruibin. Public developer name: `misakimei0331`.
+[MIT](LICENSE). Copyright © 2026 Wang-Ruibin.

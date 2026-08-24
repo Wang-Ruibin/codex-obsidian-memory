@@ -31,8 +31,8 @@ class DocumentationTests(unittest.TestCase):
     def test_public_explanatory_documents_have_separate_localizations(self) -> None:
         pairs = [
             (ROOT / "README.md", ROOT / "README.zh-CN.md"),
-            (ROOT / "CONTRIBUTING.md", ROOT / "CONTRIBUTING.zh-CN.md"),
-            (ROOT / "SECURITY.md", ROOT / "SECURITY.zh-CN.md"),
+            (ROOT / "CONTRIBUTING.md", ROOT / "docs" / "zh-CN" / "CONTRIBUTING.md"),
+            (ROOT / "SECURITY.md", ROOT / "docs" / "zh-CN" / "SECURITY.md"),
             (ROOT / "docs" / "case-study.md", ROOT / "docs" / "zh-CN" / "case-study.md"),
             (SKILL / "SKILL.md", SKILL / "SKILL.zh-CN.md"),
         ]

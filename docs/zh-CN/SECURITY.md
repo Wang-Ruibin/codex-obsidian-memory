@@ -1,6 +1,6 @@
 # 安全策略
 
-[English](SECURITY.md)
+[English](../../SECURITY.md)
 
 ## 支持版本
 

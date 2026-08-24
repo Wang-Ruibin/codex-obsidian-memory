@@ -8,7 +8,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
-[English](README.md) · **简体中文** · [构建案例](docs/zh-CN/case-study.md) · [安全策略](SECURITY.zh-CN.md)
+[English](README.md) · 简体中文 · [使用文档](#使用文档) · [安全策略](docs/zh-CN/SECURITY.md)
 
 </div>
 
@@ -19,15 +19,17 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 > [!IMPORTANT]
 > 当前是早期公开版本。迁移现有知识库前请先备份，并在信任前通过 `/hooks` 审阅每条命令。
 
-## 为什么需要它
+## 核心能力
 
-- **本地优先：**记忆保存在你拥有的 Markdown 文件中。
-- **仓库范围：**精确 GitHub `origin` 决定准入，普通目录保持静默。
-- **分支感知：**只加载 `working_branch` 与当前 checkout 精确匹配的页面。
-- **图谱友好：**一个仓库、一个文件夹、一个项目主页，分支页归属于该主页。
-- **选择性保留：**保存决策、结果、可复用失败经验和下一步，不保存对话流水账。
-- **可逆：**停用或卸载不会删除知识库。
-- **轻依赖：**运行时只使用 Python 标准库。
+| 能力 | 对使用者的意义 |
+|---|---|
+| 本地优先 | 记忆保存在你拥有的 Markdown 文件中。 |
+| 仓库范围 | 精确 GitHub `origin` 决定准入，普通目录保持静默。 |
+| 分支隔离 | 只加载 `working_branch` 与当前 checkout 精确匹配的页面。 |
+| 清晰图谱 | 一个仓库只有一个文件夹和项目主页，分支页归属于该主页。 |
+| 选择性保留 | 保存决策、结果、可复用失败经验和下一步，不保存对话流水账。 |
+| 可逆设置 | 停用或卸载不会删除知识库。 |
+| 轻量运行 | 运行时代码只使用 Python 标准库。 |
 
 ## 快速开始
 
@@ -149,28 +151,27 @@ bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
 
 ## 故障排查与限制
 
-- **Hook 静默：**运行 `status`，确认 GitHub `origin` 并检查排除项。
-- **Hook 已安装但被跳过：**在 `/hooks` 中信任，然后新开会话。
-- **分支上下文错误：**检查 `git branch --show-current` 和精确 `working_branch` frontmatter。
-- Detached HEAD 没有精确分支页。
-- 秘密遮蔽是纵深防御，不是完整秘密扫描器。
-- 周期报告要求机器具有可用的非交互 Codex 登录。
+| 现象或限制 | 处理方式 |
+|---|---|
+| Hook 没有加载记忆 | 运行 `status`，确认 GitHub `origin` 并检查排除项。 |
+| Hook 已安装但被跳过 | 在 `/hooks` 中信任，然后新开会话。 |
+| 加载了错误分支 | 检查 `git branch --show-current` 和精确 `working_branch` frontmatter。 |
+| Detached HEAD | 切换到具体分支后才能选择精确分支页。 |
+| 秘密遮蔽 | 它只是纵深防御，不是完整秘密扫描器。 |
+| 周期报告 | 机器需要可用的非交互 Codex 登录。 |
 
-## 安全与来源
+## 安全
 
-插件把所有笔记解析在配置的知识库内部，注入前遮蔽常见秘密模式，并且只移除 Setup 记录为自己添加的 writable root。请阅读[安全策略](SECURITY.zh-CN.md)。
+插件把所有笔记解析在配置的知识库内部，注入前遮蔽常见秘密模式，并且只移除 Setup 记录为自己添加的 writable root。请阅读[安全策略](docs/zh-CN/SECURITY.md)。
 
-本仓库包装了一次真实知识库的三天端到端构建。设计决策、纠错过程和已验证快照见[构建案例](docs/zh-CN/case-study.md)。
+## 使用文档
 
-## 开发
-
-```bash
-python -m unittest discover -s tests -v
-python plugins/codex-obsidian-memory/scripts/memoryctl.py --help
-```
-
-英文和简体中文文档应保持结构一致。参见[贡献指南](CONTRIBUTING.zh-CN.md)。
+- [迁移指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/migration.md)
+- [自动化指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/automation.md)
+- [安全策略](docs/zh-CN/SECURITY.md)
+- [构建案例](docs/zh-CN/case-study.md)
+- [贡献指南](docs/zh-CN/CONTRIBUTING.md)
 
 ## 许可证
 
-[MIT](LICENSE)。版权所有 © 2026 Wang-Ruibin；公开开发者显示名为 `misakimei0331`。
+[MIT](LICENSE)。版权所有 © 2026 Wang-Ruibin。
