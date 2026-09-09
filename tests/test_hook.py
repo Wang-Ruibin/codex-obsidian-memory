@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import tempfile
 import unittest
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -109,6 +111,76 @@ github_repo: Example/demo
         with patch.object(hook, "repository_identity", return_value=("", "")):
             self.assertFalse(hook.resolve_scope({"cwd": str(cwd)}, self.config, self.vault).eligible)
         self.assertEqual(hook.resolve_scope({"cwd": str(self.vault)}, self.config, self.vault).kind, "vault")
+
+    def test_writeback_requires_visible_disclosure(self) -> None:
+        event = {
+            "hook_event_name": "UserPromptSubmit",
+            "cwd": str(self.vault),
+            "session_id": "session-review",
+            "turn_id": "turn-review",
+        }
+        config_path = Path(self.temporary.name) / "state" / "config.json"
+        config_path.parent.mkdir()
+        with patch.dict(os.environ, {"CODEX_OBSIDIAN_MEMORY_CONFIG": str(config_path)}):
+            hook.save_review_snapshot(event, self.vault)
+            snapshot_path = hook.review_snapshot_path(event)
+            self.assertIsNotNone(snapshot_path)
+            snapshot_text = snapshot_path.read_text(encoding="utf-8")
+            self.assertNotIn("Long-term memory protocol", snapshot_text)
+
+            changed = self.vault / "10-memory" / "global-memory.md"
+            changed.write_text(
+                changed.read_text(encoding="utf-8") + "\n- Durable preference\n",
+                encoding="utf-8",
+            )
+            changes = hook.review_changes(event, self.vault)
+            self.assertIn(("modified", "10-memory/global-memory.md"), changes)
+
+            stop = {
+                **event,
+                "hook_event_name": "Stop",
+                "last_assistant_message": "Done <!-- obsidian-memory-reviewed -->",
+                "stop_hook_active": False,
+            }
+            with (
+                patch.object(hook, "load_event", return_value=stop),
+                patch.object(hook, "load_config", return_value=self.config),
+                patch.object(sys, "stdout", new_callable=StringIO) as output,
+            ):
+                self.assertEqual(hook.main(), 0)
+            blocked = json.loads(output.getvalue())
+            self.assertEqual(blocked["decision"], "block")
+            self.assertIn("10-memory/global-memory.md", blocked["reason"])
+            self.assertIn("Knowledge-base writeback review", blocked["reason"])
+
+            stop["last_assistant_message"] = (
+                "Done\n"
+                "<!-- obsidian-memory-writeback-disclosed -->\n"
+                "<!-- obsidian-memory-reviewed -->"
+            )
+            with (
+                patch.object(hook, "load_event", return_value=stop),
+                patch.object(hook, "load_config", return_value=self.config),
+                patch.object(sys, "stdout", new_callable=StringIO) as output,
+            ):
+                self.assertEqual(hook.main(), 0)
+            marker_only = json.loads(output.getvalue())
+            self.assertEqual(marker_only["decision"], "block")
+
+            stop["last_assistant_message"] = (
+                "## Knowledge-base writeback review\n"
+                "- global-memory.md: added Durable preference.\n"
+                "<!-- obsidian-memory-writeback-disclosed -->\n"
+                "<!-- obsidian-memory-reviewed -->"
+            )
+            with (
+                patch.object(hook, "load_event", return_value=stop),
+                patch.object(hook, "load_config", return_value=self.config),
+                patch.object(sys, "stdout", new_callable=StringIO) as output,
+            ):
+                self.assertEqual(hook.main(), 0)
+            self.assertTrue(json.loads(output.getvalue())["continue"])
+            self.assertFalse(snapshot_path.exists())
 
 
 if __name__ == "__main__":

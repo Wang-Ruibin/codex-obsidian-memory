@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -12,6 +14,7 @@ from urllib.parse import urlparse
 
 CONFIG_VERSION = 1
 REVIEW_MARKER = "<!-- obsidian-memory-reviewed -->"
+WRITEBACK_DISCLOSURE_MARKER = "<!-- obsidian-memory-writeback-disclosed -->"
 DEFAULT_PATHS = {
     "home": "00-memory-home.md",
     "global_memory": "10-memory/global-memory.md",
@@ -208,3 +211,90 @@ def branch_slug(branch: str) -> str:
     slug = re.sub(r"[<>:\"/\\|?*]+", "--", branch.strip())
     slug = re.sub(r"-+", "-", slug).strip(" .-")
     return slug or "detached-head"
+
+
+def markdown_snapshot(vault: Path) -> dict[str, str]:
+    vault = vault.resolve()
+    snapshot: dict[str, str] = {}
+    for candidate in sorted(vault.rglob("*.md"), key=lambda path: str(path).casefold()):
+        try:
+            relative = candidate.relative_to(vault)
+            if any(part.startswith(".") for part in relative.parts):
+                continue
+            resolved = candidate.resolve(strict=True)
+            resolved.relative_to(vault)
+            if not resolved.is_file():
+                continue
+            digest = hashlib.sha256(resolved.read_bytes()).hexdigest()
+        except (OSError, RuntimeError, ValueError):
+            continue
+        snapshot[relative.as_posix()] = digest
+    return snapshot
+
+
+def review_snapshot_path(event: dict[str, Any]) -> Path | None:
+    session_id = str(event.get("session_id") or "").strip()
+    turn_id = str(event.get("turn_id") or "").strip()
+    if not session_id or not turn_id:
+        return None
+    digest = hashlib.sha256(f"{session_id}\0{turn_id}".encode("utf-8")).hexdigest()
+    return integration_dir() / "writeback-reviews" / f"{digest}.json"
+
+
+def cleanup_review_snapshots(max_age_seconds: int = 7 * 24 * 60 * 60) -> None:
+    directory = integration_dir() / "writeback-reviews"
+    if not directory.is_dir():
+        return
+    cutoff = time.time() - max_age_seconds
+    for candidate in directory.glob("*.json"):
+        try:
+            if candidate.stat().st_mtime < cutoff:
+                candidate.unlink()
+        except OSError:
+            continue
+
+
+def save_review_snapshot(event: dict[str, Any], vault: Path) -> None:
+    path = review_snapshot_path(event)
+    if path is None or path.exists():
+        return
+    cleanup_review_snapshots()
+    payload = {
+        "vault": str(vault.resolve()),
+        "files": markdown_snapshot(vault),
+        "created_at": time.time(),
+    }
+    atomic_write(path, json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
+
+
+def review_changes(event: dict[str, Any], vault: Path) -> list[tuple[str, str]]:
+    path = review_snapshot_path(event)
+    if path is None or not path.is_file():
+        return []
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError, json.JSONDecodeError):
+        return []
+    if str(payload.get("vault") or "") != str(vault.resolve()):
+        return []
+    before = {str(key): str(value) for key, value in (payload.get("files") or {}).items()}
+    after = markdown_snapshot(vault)
+    changes: list[tuple[str, str]] = []
+    for relative in sorted(set(before) | set(after), key=str.casefold):
+        if relative not in before:
+            changes.append(("created", relative))
+        elif relative not in after:
+            changes.append(("deleted", relative))
+        elif before[relative] != after[relative]:
+            changes.append(("modified", relative))
+    return changes
+
+
+def clear_review_snapshot(event: dict[str, Any]) -> None:
+    path = review_snapshot_path(event)
+    if path is None:
+        return
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        pass

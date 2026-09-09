@@ -12,7 +12,7 @@
 
 </div>
 
-Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。生命周期 Hook 会在任务前加载正确笔记，在上下文压缩和子 agent 启动后重新加载，并在任务结束前要求进行一次精简的长期记忆检查。
+Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。生命周期 Hook 会在任务前加载正确笔记，在上下文压缩和子 agent 启动后重新加载，并在任务结束前要求进行一次精简的长期记忆检查。只要笔记发生变化，最终回复就必须披露具体文件和写入事实，供用户审查。
 
 无需向量数据库，无需云端记忆服务，也不应在知识库中保存凭据。
 
@@ -28,6 +28,7 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 | 分支隔离 | 只加载 `working_branch` 与当前 checkout 精确匹配的页面。 |
 | 清晰图谱 | 一个仓库只有一个文件夹和项目主页，分支页归属于该主页。 |
 | 选择性保留 | 保存决策、结果、可复用失败经验和下一步，不保存对话流水账。 |
+| 可审查回写 | 每次笔记变化都在最终回复中列出文件和具体事实，方便纠正。 |
 | 可逆设置 | 停用或卸载不会删除知识库。 |
 | 轻量运行 | 运行时代码只使用 Python 标准库。 |
 
@@ -66,6 +67,8 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 2. 在符合范围的 GitHub 仓库中新开会话。
 3. 运行 `$codex-obsidian-memory status`，然后运行 `$codex-obsidian-memory validate`。
 
+Codex 回写记忆后，请审阅最终回复中的可见 **知识库回写审查** 部分。它会列出修改文件以及新增、修改或删除的事实；如有偏差可直接回复要求修正。
+
 健康状态要求：必需笔记无缺失、项目主页无重复、分支身份无重复、Wiki 链接无断链、无孤立节点。
 
 ## 工作原理
@@ -81,6 +84,7 @@ flowchart LR
     G --> H[精确 working_branch 页面]
     H --> I[Codex 任务]
     I --> J[Stop Hook 记忆检查]
+    J --> K[可见的回写披露]
 ```
 
 ```text
@@ -159,6 +163,7 @@ bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
 | Detached HEAD | 切换到具体分支后才能选择精确分支页。 |
 | 秘密遮蔽 | 它只是纵深防御，不是完整秘密扫描器。 |
 | 周期报告 | 机器需要可用的非交互 Codex 登录。 |
+| 已发生回写但没有披露 | 不要接受该结果；确认 Hook 已信任并新开会话。 |
 
 ## 安全
 

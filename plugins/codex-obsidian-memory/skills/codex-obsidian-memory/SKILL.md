@@ -31,6 +31,7 @@ On Windows, prefer `py.exe` when `python` is unavailable.
 - Keep one folder and one project home per GitHub repository. Branch progress belongs only on the exact current `working_branch` page.
 - Treat unresolved claims as open questions; do not retain guesses, transcripts or one-off output.
 - Hooks must stay silent outside configured GitHub scope. The vault itself is the only maintenance exception.
+- After any vault Markdown write, the final reply must contain a visible **Knowledge-base writeback review** section listing every changed file and the concrete facts or sections added, changed or removed. Invite corrections, then append the disclosure marker. Do not show the section when nothing was written.
 
 ## Setup outcome
 

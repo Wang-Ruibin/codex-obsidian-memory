@@ -12,7 +12,7 @@ English · [简体中文](README.zh-CN.md) · [Documentation](#documentation) ·
 
 </div>
 
-Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load the right notes before work, reload them after compaction and for subagents, then require a concise memory review before a task ends.
+Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load the right notes before work, reload them after compaction and for subagents, then require a concise memory review before a task ends. When notes change, the final reply must disclose the exact files and facts written for user review.
 
 No vector database. No cloud memory service. No credentials in the vault.
 
@@ -28,6 +28,7 @@ No vector database. No cloud memory service. No credentials in the vault.
 | Branch isolation | Only the page whose `working_branch` matches the checkout is loaded. |
 | Clear graph | One repository has one folder and one project home, with branch pages beneath it. |
 | Selective retention | Decisions, outcomes, reusable failures and next steps are kept; transcripts are not. |
+| Reviewable writeback | Every note change is disclosed in the final reply with files and concrete facts for correction. |
 | Reversible setup | Disable or uninstall the integration without deleting the vault. |
 | Lightweight runtime | Runtime code uses only the Python standard library. |
 
@@ -66,6 +67,8 @@ For a Simplified Chinese vault, ask for `--locale zh-CN`. English is the default
 2. Start a new conversation inside an eligible GitHub repository.
 3. Run `$codex-obsidian-memory status`, then `$codex-obsidian-memory validate`.
 
+After Codex writes memory, review the visible **Knowledge-base writeback review** section in its final reply. It lists changed files and the facts added, changed or removed; reply with corrections when needed.
+
 Healthy validation means zero missing required notes, duplicate project homes, duplicate branch identities, broken Wiki links and orphan nodes.
 
 ## How it works
@@ -81,6 +84,7 @@ flowchart LR
     G --> H[Exact working_branch page]
     H --> I[Codex task]
     I --> J[Stop hook memory review]
+    J --> K[Visible writeback disclosure]
 ```
 
 ```text
@@ -159,6 +163,7 @@ Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another
 | Detached HEAD | No exact branch page can be selected until a branch is checked out. |
 | Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
 | Scheduled reports | The machine needs a working non-interactive Codex login. |
+| A write occurred but no disclosure appeared | Do not accept the result; verify the Hook is trusted and start a new conversation. |
 
 ## Security
 

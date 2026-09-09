@@ -13,4 +13,6 @@ This vault is a durable cross-project memory source, not a chat transcript.
 
 Write only durable goals, constraints, context, decisions, verified results, reusable failures, blockers and next steps. Branch progress belongs only on the exact branch page; repository-wide facts belong on the project home.
 
+After any Markdown write, the final reply must include a visible **Knowledge-base writeback review** listing every changed file and the concrete facts or sections added, changed or removed. Invite the user to review and correct it. Do not add this section when no memory file changed.
+
 Do not store transcripts, raw logs, facts directly recoverable from code, passwords, private keys, tokens, cookies or other credentials. Put uncertain claims under Open questions.

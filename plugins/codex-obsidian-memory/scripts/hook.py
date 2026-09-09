@@ -9,12 +9,17 @@ from typing import Any
 
 from memory_core import (
     REVIEW_MARKER,
+    WRITEBACK_DISCLOSURE_MARKER,
+    clear_review_snapshot,
     find_project_page,
     frontmatter_value,
     load_config,
     path_is_within,
     redact_secrets,
     repository_identity,
+    review_changes,
+    review_snapshot_path,
+    save_review_snapshot,
     vault_path,
 )
 
@@ -159,8 +164,20 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
         "Keep only durable goals, constraints, background, decisions, verified outcomes, reusable "
         "failure lessons, blockers, and next steps. Update only the exact current branch page for "
         "branch progress. Do not store chat transcripts, one-off output, passwords, keys, tokens, "
-        "cookies, or other credentials. Finish the review before appending the hidden review marker."
+        "cookies, or other credentials. If any vault Markdown is written, the final reply must contain "
+        "a visible 'Knowledge-base writeback review / 知识库回写审查' section that lists every changed "
+        "file and the concrete facts added, changed, or removed, so the user can review and correct it. "
+        "Do not add that section when nothing was written. Finish the visible review before appending "
+        "the hidden review markers."
     )
+
+
+def change_summary(changes: list[tuple[str, str]]) -> str:
+    labels = {"created": "created / 新建", "modified": "modified / 修改", "deleted": "deleted / 删除"}
+    lines = [f"- {labels.get(kind, kind)}: {relative}" for kind, relative in changes[:20]]
+    if len(changes) > 20:
+        lines.append(f"- ... and {len(changes) - 20} more files / 另有 {len(changes) - 20} 个文件")
+    return "\n".join(lines)
 
 
 def main() -> int:
@@ -201,8 +218,40 @@ def main() -> int:
 
     if event_name == "Stop":
         last_message = str(event.get("last_assistant_message") or "")
-        if REVIEW_MARKER in last_message or bool(event.get("stop_hook_active")):
+        changes = review_changes(event, vault)
+        reviewed = REVIEW_MARKER in last_message
+        disclosure_heading = (
+            "Knowledge-base writeback review" in last_message
+            or "知识库回写审查" in last_message
+        )
+        disclosed = WRITEBACK_DISCLOSURE_MARKER in last_message and disclosure_heading
+        if changes and reviewed and disclosed:
+            clear_review_snapshot(event)
             emit({"continue": True})
+            return 0
+        if not changes and reviewed:
+            clear_review_snapshot(event)
+            emit({"continue": True})
+            return 0
+        if bool(event.get("stop_hook_active")):
+            clear_review_snapshot(event)
+            emit({"continue": True})
+            return 0
+        if changes and not disclosed:
+            emit(
+                {
+                    "decision": "block",
+                    "reason": (
+                        "The knowledge base changed during this turn:\n"
+                        + change_summary(changes)
+                        + "\nBefore finishing, add a visible section titled 'Knowledge-base writeback review' "
+                        "or '知识库回写审查'. List every changed file and summarize the exact facts or "
+                        "sections added, changed, or removed; invite the user to review and request "
+                        f"corrections. Then append {WRITEBACK_DISCLOSURE_MARKER} and {REVIEW_MARKER}. "
+                        "Do not expose credentials or paste the full note contents."
+                    ),
+                }
+            )
             return 0
         registration = ""
         if scope.kind == "github-project" and scope.project_page is None:
@@ -227,6 +276,8 @@ def main() -> int:
             "Do not claim memory was loaded or updated; continue safely and report the problem."
         )
     else:
+        if event_name == "UserPromptSubmit":
+            save_review_snapshot(event, vault)
         context = build_context(scope, config, vault)
     emit(
         {
