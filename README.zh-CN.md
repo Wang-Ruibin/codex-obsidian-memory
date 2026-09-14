@@ -61,6 +61,8 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 
 ### 2. 让 Codex 创建知识库
 
+知识库就是一个普通的 Markdown 笔记文件夹，也就是你的长期记忆。位置任选：文件夹不存在时 Codex 会自动创建，之后随时可以用 Obsidian 打开它来浏览图谱。
+
 新开一个会话，然后说：
 
 ```text
@@ -68,7 +70,12 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 初始化一个简体中文知识库。修改任何全局 Codex 配置前，先征得我的同意。
 ```
 
-把路径和 owner 换成你自己的值。示例使用简体中文（`--locale zh-CN`）；英文 `en` 是默认值。
+发送前替换两个占位符：
+
+- `/absolute/path/to/memory`：知识库的存放位置，例如 Windows 上的 `D:\notes\agent-memory`，或 macOS/Linux 上的 `~/obsidian/agent-memory`。模板文件只会新增，不会覆盖已有笔记。
+- `my-account`：你的 GitHub 用户名或组织名。只有 `origin` 属于已配置 owner 的仓库才会自动加载记忆；有多个 owner 可以一并说明，单个仓库之后随时可以包含或排除。
+
+示例初始化的是简体中文知识库（`--locale zh-CN` 模板）；想要英文知识库就把“简体中文”说成“英文”，英文 `en` 是默认值。
 
 ### 3. 信任 Hook 并验证
 
@@ -85,6 +92,39 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 ### 4. 像平常一样工作
 
 从现在开始，正常工作即可。在范围内的仓库开始任务时，Codex 已经掌握了你的全局偏好、项目背景和当前分支的进度。任务结束时，Codex 会检查是否产生了值得长期保留的内容；如果它回写了记忆，最终回复会以可见的 **知识库回写审查** 部分结尾，列出每个修改文件以及新增、修改或删除的事实。发现偏差时，直接回复纠正即可。
+
+## 可选周期任务
+
+周报和月检默认关闭。要启用它们，让 Codex：
+
+```text
+使用 $codex-obsidian-memory 在这台机器上设置每周周报和每月月检。创建任何计划
+任务前，先征得我的同意。
+```
+
+成功的 ISO 周和月会去重；失败不会推进状态。只有目标报告确实更新且知识库仍通过图谱验证，Codex 的成功退出才记为周期成功。月检只能建议归档，不得自动删除、移动或归档笔记。
+
+想自己运行安装器？
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
+```
+
+Windows 任务通过无窗口 `wscript.exe` 包装器启动。
+
+### 使用 systemd user service 的 Linux
+
+```bash
+bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
+```
+
+安装器不需要 `sudo`。它会创建每天 09:00 和 09:15 的持久用户 timer，固定安装时发现的 `python3` 与 `codex` 路径，并在后台运行；错误既写 runner 日志，也保留在 systemd user journal。使用 `--uninstall` 只删除这些 unit 和稳定副本。
+
+### macOS 或没有 user systemd 的 Linux
+
+使用 launchd、cron 或其他用户级调度器运行 `routine_runner.py weekly` 和 `monthly`。使用可执行文件绝对路径，并保持最小权限、失败重试和“验证前不记成功”的相同规则。
 
 ## 你会得到什么
 
@@ -161,39 +201,6 @@ flowchart LR
 ```
 
 Codex 会使用 `--no-template` 和可重复的 `--path KEY=RELATIVE_PATH` 映射，而不是覆盖已有布局。所有路径必须保持在知识库内部。详见[迁移指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/migration.md)。
-
-## 可选周期任务
-
-周报和月检默认关闭。要启用它们，让 Codex：
-
-```text
-使用 $codex-obsidian-memory 在这台机器上设置每周周报和每月月检。创建任何计划
-任务前，先征得我的同意。
-```
-
-成功的 ISO 周和月会去重；失败不会推进状态。只有目标报告确实更新且知识库仍通过图谱验证，Codex 的成功退出才记为周期成功。月检只能建议归档，不得自动删除、移动或归档笔记。
-
-想自己运行安装器？
-
-### Windows
-
-```powershell
-powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
-```
-
-Windows 任务通过无窗口 `wscript.exe` 包装器启动。
-
-### 使用 systemd user service 的 Linux
-
-```bash
-bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
-```
-
-安装器不需要 `sudo`。它会创建每天 09:00 和 09:15 的持久用户 timer，固定安装时发现的 `python3` 与 `codex` 路径，并在后台运行；错误既写 runner 日志，也保留在 systemd user journal。使用 `--uninstall` 只删除这些 unit 和稳定副本。
-
-### macOS 或没有 user systemd 的 Linux
-
-使用 launchd、cron 或其他用户级调度器运行 `routine_runner.py weekly` 和 `monthly`。使用可执行文件绝对路径，并保持最小权限、失败重试和“验证前不记成功”的相同规则。
 
 ## 安全边界
 

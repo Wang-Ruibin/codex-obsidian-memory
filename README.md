@@ -63,6 +63,8 @@ Prefer the terminal? Typing these two commands yourself works just as well. Eith
 
 ### 2. Ask Codex to create your vault
 
+The vault is a plain folder of Markdown notes — your long-term memory. Pick any location you like: Codex creates the folder if it is missing, and you can open it in Obsidian at any time to browse the graph.
+
 Start a new conversation, then say:
 
 ```text
@@ -70,7 +72,12 @@ Use $codex-obsidian-memory to initialize an English vault at /absolute/path/to/m
 for GitHub owner my-account. Ask me before changing any global Codex configuration.
 ```
 
-Replace the path and owner with your own. For a Simplified Chinese vault, ask for `--locale zh-CN`; English is the default.
+Before sending, replace the two placeholders:
+
+- `/absolute/path/to/memory` — where the vault lives, for example `D:\notes\agent-memory` on Windows or `~/obsidian/agent-memory` on macOS/Linux. Template files are only added; existing notes are never overwritten.
+- `my-account` — your GitHub username or organization. Only repositories whose `origin` belongs to a configured owner load memory automatically. Name several owners if you need to, and include or exclude individual repositories later.
+
+The example creates an English vault. For a Simplified Chinese vault, ask for "a Simplified Chinese vault" instead — it uses the `--locale zh-CN` template.
 
 ### 3. Trust the hooks and verify
 
@@ -87,6 +94,39 @@ Healthy validation means zero missing required notes, duplicate project homes, d
 ### 4. Work as usual
 
 From now on, just work. When a task starts in an in-scope repository, Codex already has your global preferences, the project background and the current branch's progress. When the task ends, Codex checks whether anything durable emerged; if it writes memory, the final reply ends with a visible **Knowledge-base writeback review** section listing every changed file and the facts added, changed or removed. Reply with corrections whenever something looks wrong.
+
+## Optional routines
+
+Weekly briefs and monthly audits are disabled by default. To enable them, ask Codex:
+
+```text
+Use $codex-obsidian-memory to set up the weekly brief and monthly audit on this
+machine. Ask me before creating any scheduled task.
+```
+
+Successful ISO weeks and months are deduplicated; failures never advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
+
+Prefer to run the installer yourself?
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
+```
+
+Windows tasks launch through a windowless `wscript.exe` wrapper.
+
+### Linux with systemd user services
+
+```bash
+bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
+```
+
+The installer requires no `sudo`. It creates persistent user timers at 09:00 and 09:15, pins the discovered `python3` and `codex` paths, and runs in the background with runner logs plus the systemd user journal. Remove only these units and their stable copy with `--uninstall`.
+
+### macOS or Linux without user systemd
+
+Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
 
 ## What you receive
 
@@ -163,39 +203,6 @@ without overwriting my layout. Map my folders explicitly and validate afterwards
 ```
 
 Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings instead of overwriting an established layout. All paths must remain relative to the vault. See the [migration guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md).
-
-## Optional routines
-
-Weekly briefs and monthly audits are disabled by default. To enable them, ask Codex:
-
-```text
-Use $codex-obsidian-memory to set up the weekly brief and monthly audit on this
-machine. Ask me before creating any scheduled task.
-```
-
-Successful ISO weeks and months are deduplicated; failures never advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
-
-Prefer to run the installer yourself?
-
-### Windows
-
-```powershell
-powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
-```
-
-Windows tasks launch through a windowless `wscript.exe` wrapper.
-
-### Linux with systemd user services
-
-```bash
-bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
-```
-
-The installer requires no `sudo`. It creates persistent user timers at 09:00 and 09:15, pins the discovered `python3` and `codex` paths, and runs in the background with runner logs plus the systemd user journal. Remove only these units and their stable copy with `--uninstall`.
-
-### macOS or Linux without user systemd
-
-Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
 
 ## Safety boundaries
 
