@@ -2,9 +2,9 @@
 
 [简体中文](zh-CN/case-study.md)
 
-This plugin generalizes and sanitizes a real three-day Codex session that began on 2026-08-21. The source vault started empty except for Obsidian settings and evolved through behavioral tests, user corrections and graph validation.
+This plugin generalizes and sanitizes a real three-day Codex session that began on 2026-08-21. The source vault started empty except for Obsidian settings and evolved through behavioral tests, user corrections and graph validation. Read it to understand why the plugin works the way it does — and which mistakes you no longer have to make.
 
-## Build sequence
+## How the design emerged
 
 1. Store durable information, not transcripts: keep stable preferences, context, decisions, verified outcomes, reusable failures and next steps; reject credentials and raw logs.
 2. Use GitHub as project identity: an early inventory mistook 23 visible public repositories for the account total. The authorization gap established the rule that current visibility is not proof of completeness.
@@ -15,7 +15,7 @@ This plugin generalizes and sanitizes a real three-day Codex session that began 
 7. Gate by origin, not only the index: new eligible repositories receive global memory and a template even before registration.
 8. Make routines non-destructive: weekly and monthly state advances only after success; audits may recommend archival but never perform it.
 
-## Verified source snapshot
+## What the source vault proved
 
 | Invariant | Result |
 |---|---:|
@@ -28,7 +28,7 @@ This plugin generalizes and sanitizes a real three-day Codex session that began 
 
 These are case-study results, not promises about another user's vault. Each installation is validated independently.
 
-## Reusable failures
+## Lessons you can reuse
 
 | Failure | Public design response |
 |---|---|
@@ -39,6 +39,6 @@ These are case-study results, not promises about another user's vault. Each inst
 | Indexed-only scope missed new repositories | GitHub origin plus explicit exclusions |
 | Old PowerShell lacked `Path.GetRelativePath` | Dependency-free Python validator |
 
-## Deliberately excluded
+## What stays private
 
 Private repository contents, credentials, machine-specific execution rules, personal vault pages and fabricated routine results are not packaged. The public project contains fresh templates, configurable paths, deterministic scripts and reusable decisions.

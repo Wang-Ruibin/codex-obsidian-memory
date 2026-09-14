@@ -2,18 +2,15 @@
 
 [简体中文](docs/zh-CN/SECURITY.md)
 
-## Supported versions
+## Report a vulnerability
 
-Security fixes are applied to the latest release on `main` during the initial development stage.
+Use [GitHub private vulnerability reporting](https://github.com/Wang-Ruibin/codex-obsidian-memory/security/advisories/new). During the initial development stage, security fixes are applied to the latest release on `main`.
 
-## Reporting a vulnerability
-
-Use GitHub private vulnerability reporting. Never include real tokens, private keys, cookies, private vault pages or other credentials in issues, pull requests, fixtures or logs.
+Never include real tokens, private keys, cookies, private vault pages or other credentials in reports, issues, pull requests, fixtures or logs.
 
 ## Trust boundary
 
-This plugin runs local lifecycle hooks and reads a user-selected Markdown vault. Review hook definitions in `/hooks` before trusting them. The plugin uses read-only Git identity commands, resolves every note inside the configured vault, redacts common secret patterns before injection and never deletes the vault.
-
-At prompt start, the plugin stores a temporary map of relative Markdown paths and SHA-256 hashes. It never copies note bodies into review state. At Stop, it compares hashes and requires visible disclosure of changed files and facts before accepting the final review markers; successful completion removes the turn snapshot.
-
-Redaction is defense in depth, not a complete secret scanner. Keep credentials out of Markdown memory files.
+- The plugin runs local lifecycle hooks and reads a user-selected Markdown vault. Review hook definitions in `/hooks` before trusting them.
+- Repository identity comes from read-only Git commands. Every note is resolved inside the configured vault, and common secret patterns are redacted before injection. No command deletes or moves the vault.
+- At prompt start, the plugin stores a temporary map of relative Markdown paths and SHA-256 hashes — never note bodies. At Stop, it compares hashes and requires visible disclosure of changed files and facts before accepting the final review markers; successful completion removes the turn snapshot.
+- Redaction is defense in depth, not a complete secret scanner. Keep credentials out of Markdown memory files.
