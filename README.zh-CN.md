@@ -29,16 +29,14 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 > [!IMPORTANT]
 > 当前是早期公开版本。迁移现有知识库前请先备份，并在信任前通过 `/hooks` 审阅每条命令。
 
-## 开始之前
+## 从安装到第一段记忆
 
-- Codex CLI 或 ChatGPT 桌面端中的 Codex。目前 IDE 扩展不支持插件安装。
+整个安装和配置都可以通过与 Codex 对话完成。你不需要学习命令，也不需要手工编辑配置文件。你需要：
+
+- Codex CLI 或 ChatGPT 桌面端中的 Codex。VS Code 扩展与桌面端共享配置，插件安装一次即可在其中使用。
 - Python 3.11+；macOS/Linux 使用 `python3`，Windows 使用 `py.exe`。
 - `origin` 指向 GitHub 的 Git 仓库。
 - 推荐使用 Obsidian 浏览图谱；运行时只处理普通 Markdown。
-
-## 从安装到第一段记忆
-
-整个安装和配置都可以通过与 Codex 对话完成。你不需要学习命令，也不需要手工编辑配置文件。
 
 ### 1. 让 Codex 安装插件
 
@@ -106,7 +104,7 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 
 想自己运行安装器？
 
-### Windows
+Windows：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
@@ -114,7 +112,7 @@ powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/i
 
 Windows 任务通过无窗口 `wscript.exe` 包装器启动。
 
-### 使用 systemd user service 的 Linux
+使用 systemd user service 的 Linux：
 
 ```bash
 bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
@@ -122,9 +120,18 @@ bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
 
 安装器不需要 `sudo`。它会创建每天 09:00 和 09:15 的持久用户 timer，固定安装时发现的 `python3` 与 `codex` 路径，并在后台运行；错误既写 runner 日志，也保留在 systemd user journal。使用 `--uninstall` 只删除这些 unit 和稳定副本。
 
-### macOS 或没有 user systemd 的 Linux
+macOS 或没有 user systemd 的 Linux：使用 launchd、cron 或其他用户级调度器运行 `routine_runner.py weekly` 和 `monthly`。使用可执行文件绝对路径，并保持最小权限、失败重试和“验证前不记成功”的相同规则。
 
-使用 launchd、cron 或其他用户级调度器运行 `routine_runner.py weekly` 和 `monthly`。使用可执行文件绝对路径，并保持最小权限、失败重试和“验证前不记成功”的相同规则。
+## 接管现有知识库
+
+已经有在用的 Obsidian 知识库？让 Codex：
+
+```text
+使用 $codex-obsidian-memory 接管我在 /absolute/path/to/memory 的现有知识库，
+不要覆盖已有布局。显式映射我的文件夹，完成后运行验证。
+```
+
+Codex 会使用 `--no-template` 和可重复的 `--path KEY=RELATIVE_PATH` 映射，而不是覆盖已有布局。所有路径必须保持在知识库内部。详见[迁移指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/migration.md)。
 
 ## 你会得到什么
 
@@ -178,7 +185,7 @@ flowchart LR
 
 详见[结构参考](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/structure.md)。
 
-## 仓库范围
+Hook 依据精确的仓库身份决定加载内容，从不依据笔记正文：
 
 | 工作区 | 默认行为 |
 |---|---|
@@ -191,25 +198,16 @@ flowchart LR
 
 仓库身份通过非修改性 Git 命令读取。SSH 凭据、私钥、令牌和 Git 配置秘密不会读入记忆。
 
-## 接管现有知识库
-
-已经有在用的 Obsidian 知识库？让 Codex：
-
-```text
-使用 $codex-obsidian-memory 接管我在 /absolute/path/to/memory 的现有知识库，
-不要覆盖已有布局。显式映射我的文件夹，完成后运行验证。
-```
-
-Codex 会使用 `--no-template` 和可重复的 `--path KEY=RELATIVE_PATH` 映射，而不是覆盖已有布局。所有路径必须保持在知识库内部。详见[迁移指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/migration.md)。
-
-## 安全边界
+## 安全
 
 - 记忆保持本地：无遥测、无远程记忆服务、不收集凭据。
-- 任何笔记注入对话前，都会遮蔽常见秘密模式。
+- 所有笔记都解析在配置的知识库内部，注入前遮蔽常见秘密模式。
 - Hook 在普通目录、其他 Git 平台和被排除仓库中保持静默。
 - 只加载 `working_branch` 与当前 checkout 精确匹配的页面。
 - 没有任何命令会删除或移动知识库；卸载只移除插件状态和它记录为自己添加的 writable root。
 - 周期月检可以建议归档，但绝不会自行删除、移动或归档笔记。
+
+完整策略请阅读[安全策略](docs/zh-CN/SECURITY.md)。
 
 ## 故障排查
 
@@ -222,10 +220,6 @@ Codex 会使用 `--no-template` 和可重复的 `--path KEY=RELATIVE_PATH` 映�
 | 秘密遮蔽 | 它只是纵深防御，不是完整的秘密扫描器。 |
 | 周期报告 | 机器需要可用的非交互 Codex 登录。 |
 | 已发生回写但没有披露 | 不要接受该结果；确认 Hook 已信任并新开会话。 |
-
-## 安全
-
-插件把所有笔记解析在配置的知识库内部，注入前遮蔽常见秘密模式，并且只移除 Setup 记录为自己添加的 writable root。请阅读[安全策略](docs/zh-CN/SECURITY.md)。
 
 ## 使用文档
 

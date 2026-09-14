@@ -29,16 +29,14 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 > [!IMPORTANT]
 > This is an early public release. Back up an existing vault and review every command in `/hooks` before trusting it.
 
-## Before you start
+## From installation to first memory
 
-- Codex CLI or Codex in the ChatGPT desktop app. Plugin installation is not currently available in the IDE extension.
+The entire setup can be completed by talking to Codex. You do not need to learn commands or edit configuration files by hand. You need:
+
+- Codex CLI or Codex in the ChatGPT desktop app. The VS Code extension shares the same configuration, so a plugin installed once is available there too.
 - Python 3.11+ (`python3` on macOS/Linux, `py.exe` on Windows).
 - Git repositories whose `origin` points to GitHub.
 - Obsidian is recommended for graph browsing; the runtime uses ordinary Markdown.
-
-## From installation to first memory
-
-The entire setup can be completed by talking to Codex. You do not need to learn commands or edit configuration files by hand.
 
 ### 1. Ask Codex to install the plugin
 
@@ -108,7 +106,7 @@ Successful ISO weeks and months are deduplicated; failures never advance state. 
 
 Prefer to run the installer yourself?
 
-### Windows
+Windows:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
@@ -116,7 +114,7 @@ powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/i
 
 Windows tasks launch through a windowless `wscript.exe` wrapper.
 
-### Linux with systemd user services
+Linux with systemd user services:
 
 ```bash
 bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
@@ -124,9 +122,18 @@ bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
 
 The installer requires no `sudo`. It creates persistent user timers at 09:00 and 09:15, pins the discovered `python3` and `codex` paths, and runs in the background with runner logs plus the systemd user journal. Remove only these units and their stable copy with `--uninstall`.
 
-### macOS or Linux without user systemd
+macOS or Linux without user systemd: schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
 
-Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
+## Adopt an existing vault
+
+Already have an Obsidian vault you like? Ask Codex:
+
+```text
+Use $codex-obsidian-memory to adopt my existing vault at /absolute/path/to/memory
+without overwriting my layout. Map my folders explicitly and validate afterwards.
+```
+
+Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings instead of overwriting an established layout. All paths must remain relative to the vault. See the [migration guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md).
 
 ## What you receive
 
@@ -180,7 +187,7 @@ Memory home ── global memory / maintenance / template
 
 See the [structure reference](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/structure.md).
 
-## Repository scope
+Hooks decide what to load from exact repository identity, never from note content:
 
 | Workspace | Default behavior |
 |---|---|
@@ -193,25 +200,16 @@ See the [structure reference](plugins/codex-obsidian-memory/skills/codex-obsidia
 
 Repository identity is read with non-mutating Git commands. SSH credentials, private keys, tokens and Git configuration secrets are never read into memory.
 
-## Adopt an existing vault
-
-Already have an Obsidian vault you like? Ask Codex:
-
-```text
-Use $codex-obsidian-memory to adopt my existing vault at /absolute/path/to/memory
-without overwriting my layout. Map my folders explicitly and validate afterwards.
-```
-
-Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings instead of overwriting an established layout. All paths must remain relative to the vault. See the [migration guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md).
-
-## Safety boundaries
+## Security
 
 - Memory stays local: no telemetry, no remote memory service, no credential collection.
-- Common secret patterns are redacted before any note is injected into a conversation.
+- Every note is resolved inside the configured vault, and common secret patterns are redacted before injection.
 - Hooks stay silent in ordinary folders, on other Git hosts and in excluded repositories.
 - Only the page whose `working_branch` exactly matches the checkout is loaded.
 - No command deletes or moves your vault; uninstall removes only plugin state and the writable root it recorded adding.
 - Scheduled audits may recommend archival, but never delete, move or archive notes on their own.
+
+Read [SECURITY.md](SECURITY.md) for the full policy.
 
 ## Troubleshooting
 
@@ -224,10 +222,6 @@ Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings i
 | Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
 | Scheduled reports | The machine needs a working non-interactive Codex login. |
 | A write occurred but no disclosure appeared | Do not accept the result; verify the hook is trusted and start a new conversation. |
-
-## Security
-
-The plugin resolves every note inside the configured vault, redacts common secret patterns before injection, and removes a writable root only when setup recorded that it added it. Read [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
