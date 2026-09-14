@@ -2,74 +2,119 @@
 
 # Codex Obsidian Memory
 
-**Local-first, branch-aware long-term memory for Codex — organized in Obsidian.**
+### Local-first, branch-aware long-term memory for Codex — organized in Obsidian.
+
+Plain Markdown files become durable project context: Codex loads the right notes before every task and reviews what is worth remembering when the task ends.
 
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
-English · [简体中文](README.zh-CN.md) · [Documentation](#documentation) · [Security](SECURITY.md)
+**English** · [简体中文](README.zh-CN.md) · [Documentation](#documentation) · [Security](SECURITY.md)
 
 </div>
 
-Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load the right notes before work, reload them after compaction and for subagents, then require a concise memory review before a task ends. When notes change, the final reply must disclose the exact files and facts written for user review.
+## What it can do for you
 
-No vector database. No cloud memory service. No credentials in the vault.
+Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load your global preferences, the exact project home, and the page for the branch you are on before work begins — and load them again after compaction and for subagents. When the task ends, Codex reviews whether anything durable emerged and writes it back for your review.
+
+- Memory stays in Markdown files you own. No vector database, no cloud memory service, no credentials in the vault.
+- Only the GitHub repositories you choose are eligible; ordinary folders stay silent.
+- Every working branch gets its own page, so parallel lines of work never mix.
+- Only durable facts are kept — decisions, outcomes, reusable failures and next steps — never chat transcripts.
+- Every note change is disclosed in the final reply, file by file and fact by fact, so you can correct it.
+- Setup is reversible: disable or uninstall the integration without deleting the vault.
+- The runtime uses only the Python standard library.
 
 > [!IMPORTANT]
 > This is an early public release. Back up an existing vault and review every command in `/hooks` before trusting it.
 
-## Core capabilities
-
-| Capability | What it means for users |
-|---|---|
-| Local-first | Memory stays in Markdown files you own. |
-| Repository scope | Exact GitHub `origin` decides eligibility; ordinary folders stay silent. |
-| Branch isolation | Only the page whose `working_branch` matches the checkout is loaded. |
-| Clear graph | One repository has one folder and one project home, with branch pages beneath it. |
-| Selective retention | Decisions, outcomes, reusable failures and next steps are kept; transcripts are not. |
-| Reviewable writeback | Every note change is disclosed in the final reply with files and concrete facts for correction. |
-| Reversible setup | Disable or uninstall the integration without deleting the vault. |
-| Lightweight runtime | Runtime code uses only the Python standard library. |
-
-## Quick start
-
-### Requirements
+## Before you start
 
 - Codex CLI or Codex in the ChatGPT desktop app. Plugin installation is not currently available in the IDE extension.
 - Python 3.11+ (`python3` on macOS/Linux, `py.exe` on Windows).
-- Git repositories with a GitHub `origin`.
+- Git repositories whose `origin` points to GitHub.
 - Obsidian is recommended for graph browsing; the runtime uses ordinary Markdown.
 
-### 1. Install
+## From installation to first memory
+
+The entire setup can be completed by talking to Codex. You do not need to learn commands or edit configuration files by hand.
+
+### 1. Ask Codex to install the plugin
+
+Send this to Codex:
+
+```text
+Install the Codex Obsidian Memory plugin from
+https://github.com/Wang-Ruibin/codex-obsidian-memory using the Codex plugin
+marketplace commands. Check the environment, finish the installation, and verify
+that the plugin is installed. Do not change any unrelated configuration. Tell me
+whether I must start a new session when done.
+```
+
+Codex runs the equivalent of:
 
 ```bash
 codex plugin marketplace add Wang-Ruibin/codex-obsidian-memory
 codex plugin add codex-obsidian-memory@codex-obsidian-memory
 ```
 
-Start a new Codex conversation after installation.
+Prefer the terminal? Typing these two commands yourself works just as well. Either way, start a new Codex conversation afterwards.
 
-### 2. Create a vault
+### 2. Ask Codex to create your vault
 
-Ask Codex:
+Start a new conversation, then say:
 
 ```text
 Use $codex-obsidian-memory to initialize an English vault at /absolute/path/to/memory
-for GitHub owner my-account.
+for GitHub owner my-account. Ask me before changing any global Codex configuration.
 ```
 
-For a Simplified Chinese vault, ask for `--locale zh-CN`. English is the default.
+Replace the path and owner with your own. For a Simplified Chinese vault, ask for `--locale zh-CN`; English is the default.
 
-### 3. Trust and verify
+### 3. Trust the hooks and verify
 
 1. Open `/hooks`, review the four plugin commands, and trust them.
-2. Start a new conversation inside an eligible GitHub repository.
-3. Run `$codex-obsidian-memory status`, then `$codex-obsidian-memory validate`.
+2. Start a new conversation inside one of your GitHub repositories.
+3. Ask Codex:
 
-After Codex writes memory, review the visible **Knowledge-base writeback review** section in its final reply. It lists changed files and the facts added, changed or removed; reply with corrections when needed.
+```text
+Use $codex-obsidian-memory to run status and validate, then explain the results.
+```
 
 Healthy validation means zero missing required notes, duplicate project homes, duplicate branch identities, broken Wiki links and orphan nodes.
+
+### 4. Work as usual
+
+From now on, just work. When a task starts in an in-scope repository, Codex already has your global preferences, the project background and the current branch's progress. When the task ends, Codex checks whether anything durable emerged; if it writes memory, the final reply ends with a visible **Knowledge-base writeback review** section listing every changed file and the facts added, changed or removed. Reply with corrections whenever something looks wrong.
+
+## What you receive
+
+- A memory home with global preferences, a maintenance page and templates, in English or Simplified Chinese.
+- One folder per GitHub repository: a single project home plus one page per working branch.
+- Weekly-brief and monthly-audit pages, ready if you later enable the optional routines.
+- A visible writeback review whenever Codex changes a note — nothing enters long-term memory silently.
+
+## Manage memory by asking
+
+You rarely need commands. Describe what you want:
+
+| What you want | What to say |
+|---|---|
+| Check configuration and vault health | "Use $codex-obsidian-memory to run status and validate." |
+| Pause automatic memory | "Use $codex-obsidian-memory to disable memory until I ask again." |
+| Resume automatic memory | "Use $codex-obsidian-memory to enable memory again." |
+| Keep one repository silent | "Use $codex-obsidian-memory to exclude OWNER/REPO." |
+| Load a repository outside your owner scope | "Use $codex-obsidian-memory to include OWNER/REPO." |
+| Remove the integration | "Use $codex-obsidian-memory to uninstall, but keep my vault." |
+
+Behind each request Codex runs the matching plugin command — `status`, `enable`, `disable`, `include`, `exclude`, `validate` or `uninstall` — and shows you the result.
+
+`uninstall` never deletes or moves the vault. Afterwards, ask Codex to remove the plugin package, or run:
+
+```bash
+codex plugin remove codex-obsidian-memory@codex-obsidian-memory
+```
 
 ## How it works
 
@@ -108,30 +153,29 @@ See the [structure reference](plugins/codex-obsidian-memory/skills/codex-obsidia
 
 Repository identity is read with non-mutating Git commands. SSH credentials, private keys, tokens and Git configuration secrets are never read into memory.
 
-## Commands
-
-```text
-status                         Show configuration and vault health
-enable / disable               Toggle automatic behavior without deleting data
-include OWNER/REPO             Add an explicit repository inclusion
-exclude OWNER/REPO             Add an explicit repository exclusion
-validate                       Check schema, identities and graph links
-uninstall                      Remove plugin state and its own writable-root entry
-```
-
-`uninstall` never deletes or moves the vault. Remove the plugin package afterwards:
-
-```bash
-codex plugin remove codex-obsidian-memory@codex-obsidian-memory
-```
-
 ## Adopt an existing vault
 
-Use `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings instead of overwriting an established layout. All paths must remain relative to the vault. See [migration.md](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md).
+Already have an Obsidian vault you like? Ask Codex:
+
+```text
+Use $codex-obsidian-memory to adopt my existing vault at /absolute/path/to/memory
+without overwriting my layout. Map my folders explicitly and validate afterwards.
+```
+
+Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings instead of overwriting an established layout. All paths must remain relative to the vault. See the [migration guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md).
 
 ## Optional routines
 
-Weekly briefs and monthly audits are disabled by default.
+Weekly briefs and monthly audits are disabled by default. To enable them, ask Codex:
+
+```text
+Use $codex-obsidian-memory to set up the weekly brief and monthly audit on this
+machine. Ask me before creating any scheduled task.
+```
+
+Successful ISO weeks and months are deduplicated; failures never advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
+
+Prefer to run the installer yourself?
 
 ### Windows
 
@@ -139,7 +183,7 @@ Weekly briefs and monthly audits are disabled by default.
 powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
 ```
 
-Windows tasks launch through a windowless `wscript.exe` wrapper. Successful ISO weeks/months are deduplicated; failures do not advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
+Windows tasks launch through a windowless `wscript.exe` wrapper.
 
 ### Linux with systemd user services
 
@@ -153,17 +197,26 @@ The installer requires no `sudo`. It creates persistent user timers at 09:00 and
 
 Schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
 
-## Troubleshooting and limitations
+## Safety boundaries
 
-| Symptom or limitation | What to do |
+- Memory stays local: no telemetry, no remote memory service, no credential collection.
+- Common secret patterns are redacted before any note is injected into a conversation.
+- Hooks stay silent in ordinary folders, on other Git hosts and in excluded repositories.
+- Only the page whose `working_branch` exactly matches the checkout is loaded.
+- No command deletes or moves your vault; uninstall removes only plugin state and the writable root it recorded adding.
+- Scheduled audits may recommend archival, but never delete, move or archive notes on their own.
+
+## Troubleshooting
+
+| Situation | What to do |
 |---|---|
-| Hook is silent | Run `status`, verify the GitHub `origin`, and inspect exclusions. |
+| Hook is silent | Ask Codex to run `status`, verify the GitHub `origin`, and check exclusions. |
 | Hook is installed but skipped | Trust it in `/hooks`, then start a new conversation. |
-| Wrong branch context | Check `git branch --show-current` and exact `working_branch` frontmatter. |
+| Wrong branch context | Check `git branch --show-current` and the exact `working_branch` frontmatter. |
 | Detached HEAD | No exact branch page can be selected until a branch is checked out. |
 | Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
 | Scheduled reports | The machine needs a working non-interactive Codex login. |
-| A write occurred but no disclosure appeared | Do not accept the result; verify the Hook is trusted and start a new conversation. |
+| A write occurred but no disclosure appeared | Do not accept the result; verify the hook is trusted and start a new conversation. |
 
 ## Security
 
@@ -180,7 +233,5 @@ The plugin resolves every note inside the configured vault, redacts common secre
 ## License
 
 [MIT](LICENSE). Copyright © 2026 Wang-Ruibin.
-
-## Like this project?
 
 If it gave Codex a better memory, a little ⭐ would make this vault very happy. ✨
