@@ -62,6 +62,28 @@ class DocumentationTests(unittest.TestCase):
             {path.name for path in (prompt_root / "zh-CN").glob("*.md")},
         )
 
+    def test_routine_templates_include_updated_frontmatter(self) -> None:
+        template_root = PLUGIN / "assets" / "vault-template"
+        for locale in ("en", "zh-CN"):
+            for name in ("weekly-brief.md", "monthly-audit.md"):
+                with self.subTest(locale=locale, template=name):
+                    text = (template_root / locale / "10-memory" / name).read_text(
+                        encoding="utf-8-sig"
+                    )
+                    self.assertRegex(text, r"(?m)^updated:\s+YYYY-MM-DD$")
+
+    def test_manual_scheduler_examples_pin_required_paths(self) -> None:
+        references = [
+            SKILL / "references" / "automation.md",
+            SKILL / "references" / "zh-CN" / "automation.md",
+        ]
+        for reference in references:
+            with self.subTest(document=str(reference.relative_to(ROOT))):
+                text = reference.read_text(encoding="utf-8-sig")
+                self.assertIn("<plugin-root>", text)
+                self.assertIn("/absolute/path/to/python3", text)
+                self.assertIn("--codex /absolute/path/to/codex", text)
+
     def test_license_and_author_identity(self) -> None:
         license_text = (ROOT / "LICENSE").read_text(encoding="utf-8-sig")
         self.assertIn("Copyright (c) 2026 Wang-Ruibin", license_text)

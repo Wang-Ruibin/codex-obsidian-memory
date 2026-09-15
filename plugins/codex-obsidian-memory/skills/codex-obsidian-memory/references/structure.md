@@ -21,8 +21,9 @@ The knowledge and project clusters have one intentional bridge: memory home to p
 
 - A project home has `type: project` and exact `github_repo: OWNER/REPO`.
 - One repository maps to one folder and one project home.
-- A branch page has `type: branch`, the same `github_repo`, and exact `working_branch`.
+- A branch page has `type: branch`, the same `github_repo`, and a case-preserving `working_branch`. Version 0.4.0 compares branch names case-insensitively, so branches that differ only by case are not safely distinguishable.
 - Filenames may sanitize path separators, but `working_branch` preserves the Git name.
+- Create a branch page only when durable branch-specific context exists; empty pages are not required for every checkout.
 - The project home directly links every branch and repository-level child page.
 
 Keep stable goals, constraints, background, reasoned decisions, verified outcomes, reusable failures, blockers and concrete next steps. Do not keep transcripts, raw output, facts directly available from code, or secrets.

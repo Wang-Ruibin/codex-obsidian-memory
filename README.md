@@ -20,9 +20,9 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 
 - Memory stays in Markdown files you own. No vector database, no cloud memory service, no credentials in the vault.
 - Only the GitHub repositories you choose are eligible; ordinary folders stay silent.
-- Every working branch gets its own page, so parallel lines of work never mix.
+- Branch pages are created when durable branch-specific progress exists, so parallel lines of work can stay separate without filling the vault with empty placeholders.
 - Only durable facts are kept — decisions, outcomes, reusable failures and next steps — never chat transcripts.
-- Every note change is disclosed in the final reply, file by file and fact by fact, so you can correct it.
+- Whenever memory changes during a task, Codex is required to show a **Knowledge-base writeback review** with every changed file and a plain-language summary, so you can correct it before relying on the new memory.
 - Setup is reversible: disable or uninstall the integration without deleting the vault.
 - The runtime uses only the Python standard library.
 
@@ -33,7 +33,7 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 
 The entire setup can be completed by talking to Codex. You do not need to learn commands or edit configuration files by hand. You need:
 
-- Codex CLI or Codex in the ChatGPT desktop app. The VS Code extension shares the same configuration, so a plugin installed once is available there too.
+- Codex CLI or Codex in the ChatGPT desktop app. On the same machine, the VS Code extension shares your local Codex settings and can use the plugin after you install and trust it through Codex CLI or the desktop app. The extension itself does not provide a plugin browser.
 - Python 3.11+ (`python3` on macOS/Linux, `py.exe` on Windows).
 - Git repositories whose `origin` points to GitHub.
 - Obsidian is recommended for graph browsing; the runtime uses ordinary Markdown.
@@ -91,7 +91,7 @@ Healthy validation means zero missing required notes, duplicate project homes, d
 
 ### 4. Work as usual
 
-From now on, just work. When a task starts in an in-scope repository, Codex already has your global preferences, the project background and the current branch's progress. When the task ends, Codex checks whether anything durable emerged; if it writes memory, the final reply ends with a visible **Knowledge-base writeback review** section listing every changed file and the facts added, changed or removed. Reply with corrections whenever something looks wrong.
+From now on, just work. When a task starts in an in-scope repository, Codex receives your global preferences, the project background and any matching branch page that already exists. When the task ends, it reviews what is worth keeping. If memory changed, the final reply must include a visible **Knowledge-base writeback review** listing every changed file and what was added, changed or removed. Read that short review and reply with corrections whenever something looks wrong.
 
 ## Optional routines
 
@@ -104,7 +104,7 @@ machine. Ask me before creating any scheduled task.
 
 Successful ISO weeks and months are deduplicated; failures never advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
 
-Prefer to run the installer yourself?
+Prefer to run the installer yourself? The following source-tree commands must be run from the root of a clone of this repository. For a marketplace-installed copy whose location is managed by Codex, ask Codex to locate and run the bundled installer.
 
 Windows:
 
@@ -138,7 +138,7 @@ Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings i
 ## What you receive
 
 - A memory home with global preferences, a maintenance page and templates, in English or Simplified Chinese.
-- One folder per GitHub repository: a single project home plus one page per working branch.
+- One folder per GitHub repository: a single project home plus branch pages created as durable branch-specific context appears.
 - Weekly-brief and monthly-audit pages, ready if you later enable the optional routines.
 - A visible writeback review whenever Codex changes a note — nothing enters long-term memory silently.
 
@@ -157,7 +157,7 @@ You rarely need commands. Describe what you want:
 
 Behind each request Codex runs the matching plugin command — `status`, `enable`, `disable`, `include`, `exclude`, `validate` or `uninstall` — and shows you the result.
 
-`uninstall` never deletes or moves the vault. Afterwards, ask Codex to remove the plugin package, or run:
+`uninstall` never deletes or moves the vault. It stops the integration and removes the access entry added during setup. Diagnostic logs and routine history are kept by default; if you want those removed too, ask Codex to review and delete only this plugin's remaining local state while keeping the vault. Afterwards, ask Codex to remove the plugin package, or run:
 
 ```bash
 codex plugin remove codex-obsidian-memory@codex-obsidian-memory
@@ -191,7 +191,7 @@ Hooks decide what to load from exact repository identity, never from note conten
 
 | Workspace | Default behavior |
 |---|---|
-| Configured owner, indexed repository | Load global memory, project home and exact branch page |
+| Configured owner, indexed repository | Load global memory, project home and a linked page matching the current branch, when present |
 | Configured owner, new repository | Load global memory, index and template; register only for durable context |
 | Explicitly included `OWNER/REPO` | Load outside automatic owner scope |
 | Explicitly excluded `OWNER/REPO` | Stay silent |
@@ -205,8 +205,8 @@ Repository identity is read with non-mutating Git commands. SSH credentials, pri
 - Memory stays local: no telemetry, no remote memory service, no credential collection.
 - Every note is resolved inside the configured vault, and common secret patterns are redacted before injection.
 - Hooks stay silent in ordinary folders, on other Git hosts and in excluded repositories.
-- Only the page whose `working_branch` exactly matches the checkout is loaded.
-- No command deletes or moves your vault; uninstall removes only plugin state and the writable root it recorded adding.
+- Version 0.4.0 cannot safely distinguish branch names that differ only by uppercase and lowercase letters, such as `Release` and `release`. Avoid that naming pattern for now.
+- No command deletes or moves your vault. Uninstall stops the integration and removes the access entry added during setup; diagnostic history is kept unless you ask Codex to remove it too.
 - Scheduled audits may recommend archival, but never delete, move or archive notes on their own.
 
 Read [SECURITY.md](SECURITY.md) for the full policy.
@@ -218,7 +218,9 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 | Hook is silent | Ask Codex to run `status`, verify the GitHub `origin`, and check exclusions. |
 | Hook is installed but skipped | Trust it in `/hooks`, then start a new conversation. |
 | Wrong branch context | Check `git branch --show-current` and the exact `working_branch` frontmatter. |
+| Branches differ only by letter case | Rename one branch or keep only one matching page; version 0.4.0 treats those names as the same branch. |
 | Detached HEAD | No exact branch page can be selected until a branch is checked out. |
+| Some memory seems missing | Keep project homes and linked notes concise, or ask Codex to open the specific note directly. Very large memory pages may be shortened when loaded. |
 | Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
 | Scheduled reports | The machine needs a working non-interactive Codex login. |
 | A write occurred but no disclosure appeared | Do not accept the result; verify the hook is trusted and start a new conversation. |

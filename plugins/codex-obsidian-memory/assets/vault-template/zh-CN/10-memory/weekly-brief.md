@@ -2,6 +2,7 @@
 type: routine-report
 routine: weekly-brief
 status: available
+updated: YYYY-MM-DD
 tags:
   - graph/knowledge
   - routine/weekly

@@ -2,6 +2,7 @@
 type: routine-report
 routine: monthly-audit
 status: available
+updated: YYYY-MM-DD
 tags:
   - graph/knowledge
   - routine/monthly
