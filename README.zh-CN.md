@@ -2,15 +2,15 @@
 
 # Codex Obsidian Memory
 
-### 面向 Codex 的本地优先、分支感知长期记忆，由 Obsidian 组织。
+### 让 Codex 换个对话，也能接着你的项目继续做。
 
-普通 Markdown 文件变成持久项目上下文：Codex 在每个任务前加载正确的笔记，并在任务结束时审查哪些内容值得记住。
+把项目背景、已确认的决定和下一步保存在本地笔记里，下次工作时交给 Codex 参考。你照常提需求，也可以用 Obsidian 查看和修改这些记忆。
 
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
-[English](README.md) · **简体中文** · [使用文档](#使用文档) · [安全策略](docs/zh-CN/SECURITY.md)
+[English](README.md) · **简体中文** · [开始使用](#从安装到第一段记忆) · [使用文档](#使用文档) · [安全策略](docs/zh-CN/SECURITY.md)
 
 </div>
 
@@ -31,12 +31,18 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 
 ## 从安装到第一段记忆
 
-整个安装和配置都可以通过与 Codex 对话完成。你不需要学习命令，也不需要手工编辑配置文件。你需要：
+**已经做到第三步？** 检查通过后，直接做[第四步的第一次使用练习](#4-试一次保存记忆再开新对话)。第三步只是检查配置，不是日常使用命令。
+
+这是给 Codex 增加记忆的插件，使用入口仍是 Codex。Obsidian 用来查看笔记，无需在里面找聊天按钮。它面向 GitHub 代码项目：普通文件夹、只在本地的项目不会自动记忆，也不会保存你的全部聊天记录。
+
+你需要：
 
 - Codex CLI 或 ChatGPT 桌面端中的 Codex。同一台机器上的 VS Code 扩展共享本地 Codex 配置；先通过 Codex CLI 或桌面端安装并信任插件，之后即可在扩展中使用。扩展本身不提供插件浏览器。
 - Python 3.11+；macOS/Linux 使用 `python3`，Windows 使用 `py.exe`。
-- `origin` 指向 GitHub 的 Git 仓库。
+- 电脑上有一个关联 GitHub 的项目文件夹（技术上是 `origin` 指向 GitHub 的 Git 仓库）。只有 GitHub 账号、网页地址或下载的 ZIP 文件还不够；不确定时让 Codex 检查。
 - 推荐使用 Obsidian 浏览图谱；运行时只处理普通 Markdown。
+
+下面标注“发给 Codex”的文字，复制到 **Codex 的聊天输入框**，像发消息一样发送即可，不要粘贴到 Obsidian 笔记或 PowerShell 中。每步等 Codex 完成并确认结果后再继续；安装和初始化通常只做一次。看不懂提示时，直接让它解释“我现在需要做什么”。
 
 ### 1. 让 Codex 安装插件
 
@@ -57,39 +63,68 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 
 更喜欢自己动手？在终端输入这两条命令效果相同。无论哪种方式，之后都新开一个 Codex 会话。
 
+完成标志：Codex 确认插件已安装，新对话能识别 `$codex-obsidian-memory`。如果提示缺少 Python 或不认识安装命令，把完整提示发给 Codex，让它先检查环境，不要跳到下一步。
+
 ### 2. 让 Codex 创建知识库
 
 知识库就是一个普通的 Markdown 笔记文件夹，也就是你的长期记忆。位置任选：文件夹不存在时 Codex 会自动创建，之后随时可以用 Obsidian 打开它来浏览图谱。
 
-新开一个会话，然后说：
+新开一个会话，把下面这段话发给 Codex；不用自己填写路径或用户名：
 
 ```text
-使用 $codex-obsidian-memory，为 GitHub owner my-account 在 /absolute/path/to/memory
-初始化一个简体中文知识库。修改任何全局 Codex 配置前，先征得我的同意。
+使用 $codex-obsidian-memory，带我创建简体中文记忆知识库。
+先检查是否已经配置过，避免重复初始化。请帮我确认当前项目对应的 GitHub 用户名
+或组织名，再问我笔记存在哪里；我不清楚时，请解释并建议一个适合本机的位置。
+确认后再创建，不要覆盖已有笔记。修改任何全局 Codex 配置前，先征得我的同意。
+完成后告诉我知识库的完整路径，以及哪些项目会启用记忆。
 ```
 
-发送前替换两个占位符：
+Codex 会帮你确认两件事：
 
-- `/absolute/path/to/memory`：知识库的存放位置，例如 Windows 上的 `D:\notes\agent-memory`，或 macOS/Linux 上的 `~/obsidian/agent-memory`。模板文件只会新增，不会覆盖已有笔记。
-- `my-account`：你的 GitHub 用户名或组织名。只有 `origin` 属于已配置 owner 的仓库才会自动加载记忆；有多个 owner 可以一并说明，单个仓库之后随时可以包含或排除。
+- 笔记存放位置：例如 Windows 上的 `D:\notes\agent-memory`，或 macOS/Linux 上的 `~/obsidian/agent-memory`，由 Codex 确认完整路径。这里存的是记忆笔记；日常工作仍打开你自己的项目文件夹。
+- GitHub 用户名或组织名：例如项目地址为 `https://github.com/my-account/my-project`，对应的名字就是 `my-account`。有多个账号可以一并说明；单个仓库也可以单独包含或排除。
 
 示例初始化的是简体中文知识库（`--locale zh-CN` 模板）；想要英文知识库就把“简体中文”说成“英文”，英文 `en` 是默认值。
 
+完成标志：Codex 告诉你笔记存放的完整路径、记忆已启用和适用的项目范围。记下这个路径，之后可用 Obsidian 的“打开文件夹作为仓库”打开它。
+
 ### 3. 信任 Hook 并验证
 
-1. 打开 `/hooks`，审阅并信任四条插件命令。
-2. 在你的某个 GitHub 仓库中新开会话。
-3. 让 Codex：
+Hook 是在你开始和结束任务时自动运行的操作。安装插件后还需要信任它们，才能自动加载和检查记忆。
+
+1. 在 **Codex CLI 的输入框**输入 `/hooks`，审阅并信任本插件的四条命令。这不是 PowerShell 命令。如果当前界面没有这个入口，告诉 Codex 你用的客户端，请它引导你在本机 CLI 中完成。参见 [OpenAI 官方 Hook 说明](https://learn.chatgpt.com/docs/hooks)。
+2. 在 Codex 中打开**你要做的项目文件夹**，新建一个对话；使用 CLI 时，从该项目目录启动 Codex。不要只打开插件源码或记忆笔记文件夹。
+3. 把下面这段话发给 Codex：
 
 ```text
-使用 $codex-obsidian-memory 运行 status 和 validate，并解释结果。
+使用 $codex-obsidian-memory 运行 status 和 validate，并检查当前项目是否在记忆范围内。
+请用普通话告诉我：记忆是否启用、笔记存在哪里、当前项目能否使用、还缺哪一步。
+不要只给我原始检查数据；如果不在范围内，请解释原因，先不要修改仓库或上传文件。
 ```
 
-健康状态要求：必需笔记无缺失、项目主页无重复、分支身份无重复、Wiki 链接无断链、无孤立节点。
+完成标志：记忆已启用，知识库检查通过，当前项目也在适用范围内。**只看到检查通过，还不能证明当前项目会自动加载记忆。** 普通文件夹、未关联 GitHub 的项目或被排除的仓库，需要先由 Codex 说明原因。
 
-### 4. 像平常一样工作
+### 4. 试一次保存记忆，再开新对话
 
-从现在开始，正常工作即可。在范围内的仓库开始任务时，Codex 会收到你的全局偏好、项目背景，以及已经存在的匹配分支页。任务结束时，它会审查哪些内容值得保留；如果记忆发生变化，最终回复必须包含可见的 **知识库回写审查**，列出每个修改文件以及新增、修改或删除的内容。读完这段简短审查，发现偏差时直接回复纠正即可。
+在第三步确认可用的项目里，把下面这段话发给 Codex（偏好可改成你真实需要的）：
+
+```text
+请记住本项目的协作偏好：给我操作步骤时，一次只讲一步，并说明在哪里操作、
+看到什么算成功。请保存到这个项目的长期记忆里，并告诉我写到了哪个笔记文件。
+```
+
+等任务结束，查看回复里的 **知识库回写审查**：应列出修改的笔记文件和保存的内容。需要时让 Codex 打开那份笔记核对；只有口头说“记住了”，还不能证明已经保存。
+
+然后在**同一个项目、同一个分支**新开对话（分支就是同一项目的不同工作版本；没有切换过就保持原样），发送：
+
+```text
+请根据已加载的项目记忆，说出我对操作步骤有什么偏好，并指出来源笔记。
+如果没有加载到，请明确告诉我，不要猜测，也先不要手动搜索知识库。
+```
+
+新对话能准确说出刚才的偏好并指出来源，才完成了“保存 → 换对话 → 读取”的第一次使用。如果没读到，回到第三步排查。
+
+以后照常在 Codex 里提需求，例如“帮我看看这个项目怎么启动”或“继续上次的任务，先告诉我做到哪了”。日常任务不用每次输入 `$codex-obsidian-memory`，也不用重复安装。Codex 会在任务结束时审查值得保留的内容；没有新增长期信息时，不新增笔记是正常的。记错了就直接说“请把刚才那条项目记忆改成……”，再查看修改后的回写审查。
 
 ## 可选周期任务
 
@@ -100,27 +135,9 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 任务前，先征得我的同意。
 ```
 
-成功的 ISO 周和月会去重；失败不会推进状态。只有目标报告确实更新且知识库仍通过图谱验证，Codex 的成功退出才记为周期成功。月检只能建议归档，不得自动删除、移动或归档笔记。
+周报帮你回顾进度，月检检查笔记并提出整理建议。自动运行时，这台电脑需要可用，Codex 也需要保持可用的登录状态。月检可以建议归档，但不会自动删除、移动或归档笔记。
 
-想自己运行安装器？下面的源码树命令必须在本仓库克隆副本的根目录执行。如果插件由 marketplace 安装、路径由 Codex 管理，请让 Codex 定位并运行随附安装器。
-
-Windows：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
-```
-
-Windows 任务通过无窗口 `wscript.exe` 包装器启动。
-
-使用 systemd user service 的 Linux：
-
-```bash
-bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
-```
-
-安装器不需要 `sudo`。它会创建每天 09:00 和 09:15 的持久用户 timer，固定安装时发现的 `python3` 与 `codex` 路径，并在后台运行；错误既写 runner 日志，也保留在 systemd user journal。使用 `--uninstall` 只删除这些 unit 和稳定副本。
-
-macOS 或没有 user systemd 的 Linux：使用 launchd、cron 或其他用户级调度器运行 `routine_runner.py weekly` 和 `monthly`。使用可执行文件绝对路径，并保持最小权限、失败重试和“验证前不记成功”的相同规则。
+各平台的设置和停用方法见[自动化指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/automation.md)。
 
 ## 接管现有知识库
 

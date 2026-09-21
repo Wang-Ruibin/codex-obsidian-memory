@@ -2,15 +2,15 @@
 
 # Codex Obsidian Memory
 
-### Local-first, branch-aware long-term memory for Codex — organized in Obsidian.
+### Start a new Codex conversation and keep your project moving.
 
-Plain Markdown files become durable project context: Codex loads the right notes before every task and reviews what is worth remembering when the task ends.
+Keep project background, confirmed decisions and next steps in local notes for Codex to refer to next time. Ask for work as usual, and use Obsidian to view or edit those memories.
 
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
-**English** · [简体中文](README.zh-CN.md) · [Documentation](#documentation) · [Security](SECURITY.md)
+**English** · [简体中文](README.zh-CN.md) · [Get started](#from-installation-to-first-memory) · [Documentation](#documentation) · [Security](SECURITY.md)
 
 </div>
 
@@ -31,12 +31,18 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 
 ## From installation to first memory
 
-The entire setup can be completed by talking to Codex. You do not need to learn commands or edit configuration files by hand. You need:
+**Already at step 3?** Once the checks pass, go straight to [your first-use exercise in step 4](#4-save-a-memory-then-start-a-new-conversation). Step 3 checks setup; it is not your everyday usage command.
+
+This plugin adds memory to Codex, so you still work in Codex. Obsidian lets you view the notes; there is no chat button to find there. It is intended for GitHub code projects: ordinary folders and local-only projects do not load memory automatically, and it does not save your entire chat history.
+
+You need:
 
 - Codex CLI or Codex in the ChatGPT desktop app. On the same machine, the VS Code extension shares your local Codex settings and can use the plugin after you install and trust it through Codex CLI or the desktop app. The extension itself does not provide a plugin browser.
 - Python 3.11+ (`python3` on macOS/Linux, `py.exe` on Windows).
-- Git repositories whose `origin` points to GitHub.
+- A project folder on your computer linked to GitHub (technically, a Git repository whose `origin` points to GitHub). A GitHub account, web address or downloaded ZIP alone is not enough; ask Codex to check if you are unsure.
 - Obsidian is recommended for graph browsing; the runtime uses ordinary Markdown.
+
+Copy text labeled “send to Codex” into **Codex's chat input**, just like a message, rather than into an Obsidian note or PowerShell. Wait for Codex to finish and confirm each step before continuing; installation and initialization usually happen once. If a message is unclear, ask it to explain “What do I need to do now?”
 
 ### 1. Ask Codex to install the plugin
 
@@ -59,39 +65,73 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 
 Prefer the terminal? Typing these two commands yourself works just as well. Either way, start a new Codex conversation afterwards.
 
+You are done when Codex confirms installation and a new conversation recognizes `$codex-obsidian-memory`. If Python is missing or the installation command is not recognized, give Codex the full message and ask it to check the environment before moving on.
+
 ### 2. Ask Codex to create your vault
 
 The vault is a plain folder of Markdown notes — your long-term memory. Pick any location you like: Codex creates the folder if it is missing, and you can open it in Obsidian at any time to browse the graph.
 
-Start a new conversation, then say:
+Start a new conversation and send this to Codex; you do not need to fill in a path or username yourself:
 
 ```text
-Use $codex-obsidian-memory to initialize an English vault at /absolute/path/to/memory
-for GitHub owner my-account. Ask me before changing any global Codex configuration.
+Use $codex-obsidian-memory to help me create an English memory vault.
+Check for an existing setup first to avoid initializing it twice. Help me confirm
+the GitHub username or organization for this project, then ask where to store notes.
+If I am unsure, explain and suggest a suitable location on this computer.
+Create it after confirmation without overwriting notes. Ask me before changing any
+global Codex configuration. Tell me the full vault path and which projects will use memory.
 ```
 
-Before sending, replace the two placeholders:
+Codex will help you confirm two things:
 
-- `/absolute/path/to/memory` — where the vault lives, for example `D:\notes\agent-memory` on Windows or `~/obsidian/agent-memory` on macOS/Linux. Template files are only added; existing notes are never overwritten.
-- `my-account` — your GitHub username or organization. Only repositories whose `origin` belongs to a configured owner load memory automatically. Name several owners if you need to, and include or exclude individual repositories later.
+- Where notes live: for example, `D:\notes\agent-memory` on Windows or `~/obsidian/agent-memory` on macOS/Linux, with Codex confirming the full path. This folder holds memory notes; open your own project folder for everyday work.
+- Your GitHub username or organization: for a project at `https://github.com/my-account/my-project`, the name is `my-account`. You can name multiple accounts and include or exclude individual repositories.
 
 The example creates an English vault. For a Simplified Chinese vault, ask for "a Simplified Chinese vault" instead — it uses the `--locale zh-CN` template.
 
+You are done when Codex gives you the full notes path, confirms memory is enabled and explains which projects are in scope. Keep that path; you can use Obsidian's “Open folder as vault” to view it later.
+
 ### 3. Trust the hooks and verify
 
-1. Open `/hooks`, review the four plugin commands, and trust them.
-2. Start a new conversation inside one of your GitHub repositories.
-3. Ask Codex:
+Hooks are actions that run automatically when you start and finish tasks. After installation, you must trust them before automatic memory loading and checks can run.
+
+1. Enter `/hooks` in **Codex CLI's input**, then review and trust this plugin's four commands. This is not a PowerShell command. If your interface has no such entry, tell Codex which client you use and ask it to guide you through the local CLI. See the [official OpenAI hook guide](https://learn.chatgpt.com/docs/hooks).
+2. Open **the project folder you want to work on** in Codex and start a new conversation; with the CLI, launch Codex from that project directory. Do not just open the plugin source or the memory notes folder.
+3. Send this to Codex:
 
 ```text
-Use $codex-obsidian-memory to run status and validate, then explain the results.
+Use $codex-obsidian-memory to run status and validate, and check whether this project
+is in memory scope. In plain language, tell me whether memory is enabled, where notes
+are stored, whether this project can use it and what steps remain. Do not just show
+raw check results. If the project is out of scope, explain why before changing any
+repository settings or uploading files.
 ```
 
-Healthy validation means zero missing required notes, duplicate project homes, duplicate branch identities, broken Wiki links and orphan nodes.
+You are done when memory is enabled, the vault passes validation and this project is in scope. **Passing vault validation alone does not prove that this project will load memory automatically.** Ask Codex to explain if the folder is not a Git repository, is not linked to GitHub or is excluded.
 
-### 4. Work as usual
+### 4. Save a memory, then start a new conversation
 
-From now on, just work. When a task starts in an in-scope repository, Codex receives your global preferences, the project background and any matching branch page that already exists. When the task ends, it reviews what is worth keeping. If memory changed, the final reply must include a visible **Knowledge-base writeback review** listing every changed file and what was added, changed or removed. Read that short review and reply with corrections whenever something looks wrong.
+In the project verified in step 3, send this to Codex (change the preference to something you actually want):
+
+```text
+Remember this collaboration preference for this project: give me one step at a time,
+and explain where to do it and what success looks like. Save it in this project's
+long-term memory and tell me which note file you updated.
+```
+
+When the task finishes, look for the **Knowledge-base writeback review** in the reply. It should list the changed note files and what was saved. Ask Codex to open that note if needed; saying “I remembered it” alone does not prove anything was saved.
+
+Then start a new conversation in **the same project and branch** (branches are different working versions of a project; if you have not switched, leave it as it is) and send:
+
+```text
+Based on the project memory already loaded, what is my preference for instructions?
+Identify the source note. If it was not loaded, say so rather than guessing, and do
+not manually search the vault yet.
+```
+
+If the new conversation accurately recalls the preference and identifies its source, you have completed your first “save → new conversation → read” exercise. If it does not, return to step 3 to troubleshoot.
+
+After that, ask for work as usual in Codex, such as “Help me start this project” or “Continue the previous task; first tell me where we left off.” Everyday tasks do not need `$codex-obsidian-memory` or repeated installation. Codex reviews what is worth keeping at the end of a task; no new note is normal when there is no new durable information. To correct a mistake, say “Change that project memory to…” and check the updated writeback review.
 
 ## Optional routines
 
@@ -102,27 +142,9 @@ Use $codex-obsidian-memory to set up the weekly brief and monthly audit on this
 machine. Ask me before creating any scheduled task.
 ```
 
-Successful ISO weeks and months are deduplicated; failures never advance state. A successful Codex exit counts only when the target report changed and the vault still passes graph validation. Monthly audits may recommend archival but never delete, move or archive notes automatically.
+Weekly briefs summarize progress; monthly audits review the notes and suggest maintenance. Scheduled runs need this computer to be available and Codex signed in. Monthly audits may recommend archiving notes but never delete, move or archive them automatically.
 
-Prefer to run the installer yourself? The following source-tree commands must be run from the root of a clone of this repository. For a marketplace-installed copy whose location is managed by Codex, ask Codex to locate and run the bundled installer.
-
-Windows:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File plugins/codex-obsidian-memory/scripts/install-windows-tasks.ps1
-```
-
-Windows tasks launch through a windowless `wscript.exe` wrapper.
-
-Linux with systemd user services:
-
-```bash
-bash plugins/codex-obsidian-memory/scripts/install-linux-systemd.sh
-```
-
-The installer requires no `sudo`. It creates persistent user timers at 09:00 and 09:15, pins the discovered `python3` and `codex` paths, and runs in the background with runner logs plus the systemd user journal. Remove only these units and their stable copy with `--uninstall`.
-
-macOS or Linux without user systemd: schedule `routine_runner.py weekly` and `monthly` with launchd, cron, or another user-level scheduler. Use absolute executable paths and keep the same least-privilege, failure-retry and no-success-before-validation rules.
+For platform-specific setup and removal, see the [automation guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/automation.md).
 
 ## Adopt an existing vault
 
