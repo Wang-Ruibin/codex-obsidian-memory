@@ -31,8 +31,6 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 
 ## From installation to first memory
 
-**Already at step 3?** Once the checks pass, go straight to [your first-use exercise in step 4](#4-save-a-memory-then-start-a-new-conversation). Step 3 checks setup; it is not your everyday usage command.
-
 This plugin adds memory to Codex, so you still work in Codex. Obsidian lets you view the notes; there is no chat button to find there. It is intended for GitHub code projects: ordinary folders and local-only projects do not load memory automatically, and it does not save your entire chat history.
 
 You need:
