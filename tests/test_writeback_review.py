@@ -62,6 +62,14 @@ class WritebackReviewTests(unittest.TestCase):
         body = "- projects/demo/main.md: added deployment decision."
         self.assertEqual(disclosure_errors(self.review(body), self.changes[:1], self.vault), [])
 
+    def test_absolute_link_paths_are_resolved_inside_vault(self):
+        path = (self.vault / "nested" / ".." / self.changes[0][1]).as_posix()
+        message = self.review(f"- [note](<{path}:4>): added deployment decision.")
+        self.assertEqual(disclosure_errors(message, self.changes[:1], self.vault), [])
+        outside = (self.vault / ".." / self.changes[0][1]).as_posix()
+        message = self.review(f"- [projects/demo/main.md](<{outside}>): added deployment decision.")
+        self.assertTrue(disclosure_errors(message, self.changes[:1], self.vault))
+
     def test_wrong_link_destination_and_substrings_do_not_count(self):
         for path in ("other/projects/demo/main.md", "projects/demo/main.md.bak",
                      "[projects/demo/main.md](other/main.md)"):

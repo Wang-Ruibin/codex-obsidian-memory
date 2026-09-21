@@ -86,6 +86,18 @@ def disclosure_errors(message: str, changes: list[tuple[str, str]], vault: Path)
     basenames = Counter(Path(path).name for path in paths)
     entries = [line.strip() for line in section.splitlines()
                if re.match(r"^\s*(?:[-*+]\s|\d+[.)]\s|\|)", line)]
+
+    def link_destination(match: re.Match[str]) -> str:
+        destination = match.group(2)
+        path = Path(re.sub(r":\d+$", "", destination))
+        if path.is_absolute():
+            try:
+                # Resolve both sides: Windows temp paths may use 8.3 aliases.
+                return path.resolve().relative_to(vault.resolve()).as_posix()
+            except (OSError, RuntimeError, ValueError):
+                pass
+        return destination
+
     for _, relative in changes:
         basename = Path(relative).name
         aliases = {relative, (vault.resolve() / relative).as_posix()}
@@ -96,7 +108,7 @@ def disclosure_errors(message: str, changes: list[tuple[str, str]], vault: Path)
             entry = unquote(entry).replace("\\", "/")
             # Strip links after replacing their destination with its path, so the
             # label cannot falsely identify one file while linking another.
-            entry = re.sub(r"\[([^\]]*)\]\(<?([^)>]+)>?\)", r"\2", entry)
+            entry = re.sub(r"\[([^\]]*)\]\(<?([^)>]+)>?\)", link_destination, entry)
             for alias in sorted(aliases, key=len, reverse=True):
                 pattern = r"(?<![\w./-])" + re.escape(alias) + r"(?::\d+)?(?![\w./-])"
                 match = re.search(pattern, entry)
