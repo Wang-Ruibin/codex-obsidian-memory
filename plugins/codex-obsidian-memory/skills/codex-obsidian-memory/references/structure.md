@@ -21,7 +21,7 @@ The knowledge and project clusters have one intentional bridge: memory home to p
 
 - A project home has `type: project` and exact `github_repo: OWNER/REPO`.
 - One repository maps to one folder and one project home.
-- A branch page has `type: branch`, the same `github_repo`, and a case-preserving `working_branch`. Version 0.4.0 compares branch names case-insensitively, so branches that differ only by case are not safely distinguishable.
+- A branch page has `type: branch`, the same `github_repo`, and an exact, case-sensitive `working_branch`. `Release` and `release` are different identities; two pages with the same repository and exact branch remain duplicates. Use distinct filenames such as `release-upper.md` and `release-lower.md` on case-insensitive filesystems; filenames do not determine branch identity.
 - Filenames may sanitize path separators, but `working_branch` preserves the Git name.
 - Create a branch page only when durable branch-specific context exists; empty pages are not required for every checkout.
 - The project home directly links every branch and repository-level child page.

@@ -28,3 +28,5 @@ Tell me the results and anything that failed.
 - Update the English source and matching `zh-CN` translation in the same change, keeping headings, code blocks, warnings and local links structurally aligned.
 
 Open an issue before a large schema migration. Pull requests should explain the user-visible outcome, tests run and compatibility impact.
+
+For a reproducible check against an existing vault without changing it, see [adoption verification](docs/adoption-verification.md).

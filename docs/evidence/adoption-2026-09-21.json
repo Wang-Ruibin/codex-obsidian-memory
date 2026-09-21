@@ -1,0 +1,23 @@
+{
+  "platform": "Windows",
+  "python": "3.14.6",
+  "source_markdown_files": 67,
+  "project_homes": 28,
+  "branch_pages": 28,
+  "visible_nodes": 66,
+  "checks": {
+    "adoption_preserves_notes": true,
+    "status_enabled": true,
+    "graph_valid": true,
+    "project_context_loaded": true,
+    "missing_disclosure_blocked": true,
+    "incomplete_retry_blocked": true,
+    "complete_review_accepted": true,
+    "new_session_hook_loads_saved_fact": true,
+    "disable_silent": true,
+    "enable_restores_context": true,
+    "uninstall_preserves_notes": true,
+    "source_unchanged": true
+  },
+  "scope": "CLI and hook subprocesses against a copy of an existing vault; not an interactive Codex session"
+}

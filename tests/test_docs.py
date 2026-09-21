@@ -34,6 +34,7 @@ class DocumentationTests(unittest.TestCase):
             (ROOT / "CONTRIBUTING.md", ROOT / "docs" / "zh-CN" / "CONTRIBUTING.md"),
             (ROOT / "SECURITY.md", ROOT / "docs" / "zh-CN" / "SECURITY.md"),
             (ROOT / "docs" / "case-study.md", ROOT / "docs" / "zh-CN" / "case-study.md"),
+            (ROOT / "docs" / "adoption-verification.md", ROOT / "docs" / "zh-CN" / "adoption-verification.md"),
             (SKILL / "SKILL.md", SKILL / "SKILL.zh-CN.md"),
         ]
         for english, chinese in pairs:
@@ -94,7 +95,7 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.4.0")
+        self.assertEqual(manifest["version"], "0.4.1")
 
     def test_agents_is_single_operational_source(self) -> None:
         self.assertTrue((ROOT / "AGENTS.md").is_file())

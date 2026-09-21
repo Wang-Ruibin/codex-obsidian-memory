@@ -100,7 +100,7 @@ def main() -> int:
         elif page_type == "branch" and repository:
             branch = frontmatter_value(text, "working_branch")
             if branch:
-                branch_identities[(repository.casefold(), branch.casefold())].append(
+                branch_identities[(repository.casefold(), branch)].append(
                     str(path.relative_to(vault))
                 )
 

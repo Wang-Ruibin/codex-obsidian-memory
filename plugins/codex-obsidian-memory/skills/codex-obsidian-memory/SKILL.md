@@ -28,10 +28,10 @@ On Windows, prefer `py.exe` when `python` is unavailable.
 - Never read, copy, print or store passwords, private keys, tokens, cookies or other credentials.
 - Never delete or move a vault. Template installation is additive unless the user explicitly approves `--force-template` after reviewing conflicts.
 - For a non-default existing layout, use `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings, then validate.
-- Keep one folder and one project home per GitHub repository. Create a branch page only for durable branch-specific progress. Version 0.4.0 compares `working_branch` case-insensitively, so warn about branch names that differ only by case.
+- Keep one folder and one project home per GitHub repository. Create a branch page only for durable branch-specific progress. Match `working_branch` case-sensitively and `github_repo` case-insensitively. Use distinct filenames for branches such as `Release` and `release` on case-insensitive filesystems.
 - Treat unresolved claims as open questions; do not retain guesses, transcripts or one-off output.
 - Hooks must stay silent outside configured GitHub scope. The vault itself is the only maintenance exception.
-- After any vault Markdown write, the final reply must contain a visible **Knowledge-base writeback review** section listing every changed file and the concrete facts or sections added, changed or removed. Invite corrections, then append the disclosure marker. The Stop hook verifies the heading and markers, not the semantic completeness of the list. Do not show the section when nothing was written.
+- After any vault Markdown write, the final reply must contain a visible **Knowledge-base writeback review** section. Use one bullet per changed file with its vault-relative path and the concrete facts or sections added, changed or removed. A basename is accepted only when unique across the vault and changed files. Invite corrections, then append the disclosure marker followed by the review marker. The Stop hook checks file coverage and minimum descriptions, including on retries; it cannot verify factual accuracy or exhaustive semantics. Do not hide entries in quotes, comments or code fences. Do not show the section when nothing was written.
 
 ## Setup outcome
 

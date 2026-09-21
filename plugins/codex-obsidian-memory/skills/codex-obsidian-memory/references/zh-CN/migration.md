@@ -42,3 +42,9 @@ python ../../scripts/memoryctl.py init --vault /absolute/path/to/vault --github-
 ```
 
 Windows 上没有 `python` 时使用 `py.exe`。接管后立即运行 `status` 和 `validate`。如果任一检查发现问题，请保持自动记忆暂停，并让 Codex 解释需要处理的内容。
+
+## 验证第一条已保存的记忆
+
+让 Codex 检查当前打开的项目是否在适用范围内；知识库健康并不能证明这一点。然后保存一条真实项目偏好，查看它指出的笔记，在同一项目、同一分支新开对话，询问这条偏好及来源。如果没有读取到，先检查 Hook 信任和项目范围，不要重复初始化。
+
+回写审查被拦截时，每个修改笔记单独列一条，包含相对知识库的路径和具体说明。不同项目文件夹有同名文件时，需要带目录路径。Windows 上为 `Release` 和 `release` 等分支使用不同笔记文件名，同时保留精确的 `working_branch` 值。

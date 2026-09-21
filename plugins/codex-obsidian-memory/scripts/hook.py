@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from writeback_review import disclosure_errors
+
 from memory_core import (
     REVIEW_MARKER,
     WRITEBACK_DISCLOSURE_MARKER,
@@ -135,7 +137,9 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
                 continue
             if frontmatter_value(target_text, "type").casefold() == "branch":
                 working_branch = frontmatter_value(target_text, "working_branch")
-                if not scope.branch or working_branch.casefold() != scope.branch.casefold():
+                repository = frontmatter_value(target_text, "github_repo")
+                if (not scope.branch or working_branch != scope.branch
+                        or repository.casefold() != scope.repository.casefold()):
                     continue
             add_note(resolved)
     else:
@@ -167,6 +171,7 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
         "cookies, or other credentials. If any vault Markdown is written, the final reply must contain "
         "a visible 'Knowledge-base writeback review / 知识库回写审查' section that lists every changed "
         "file and the concrete facts added, changed, or removed, so the user can review and correct it. "
+        "Use one bullet per file with its vault-relative path and a concrete description. "
         "Do not add that section when nothing was written. Finish the visible review before appending "
         "the hidden review markers."
     )
@@ -220,11 +225,8 @@ def main() -> int:
         last_message = str(event.get("last_assistant_message") or "")
         changes = review_changes(event, vault)
         reviewed = REVIEW_MARKER in last_message
-        disclosure_heading = (
-            "Knowledge-base writeback review" in last_message
-            or "知识库回写审查" in last_message
-        )
-        disclosed = WRITEBACK_DISCLOSURE_MARKER in last_message and disclosure_heading
+        errors = disclosure_errors(last_message, changes, vault) if changes else []
+        disclosed = not errors
         if changes and reviewed and disclosed:
             clear_review_snapshot(event)
             emit({"continue": True})
@@ -233,7 +235,7 @@ def main() -> int:
             clear_review_snapshot(event)
             emit({"continue": True})
             return 0
-        if bool(event.get("stop_hook_active")):
+        if bool(event.get("stop_hook_active")) and not changes:
             clear_review_snapshot(event)
             emit({"continue": True})
             return 0
@@ -244,9 +246,11 @@ def main() -> int:
                     "reason": (
                         "The knowledge base changed during this turn:\n"
                         + change_summary(changes)
+                        + "\nReview problems:\n- " + "\n- ".join(errors)
                         + "\nBefore finishing, add a visible section titled 'Knowledge-base writeback review' "
                         "or '知识库回写审查'. List every changed file and summarize the exact facts or "
-                        "sections added, changed, or removed; invite the user to review and request "
+                        "sections added, changed, or removed. Use one bullet per file with its "
+                        "vault-relative path and a concrete summary, not just 'updated'; invite the user to review and request "
                         f"corrections. Then append {WRITEBACK_DISCLOSURE_MARKER} and {REVIEW_MARKER}. "
                         "Do not expose credentials or paste the full note contents."
                     ),

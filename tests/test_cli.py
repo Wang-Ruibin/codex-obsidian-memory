@@ -113,6 +113,28 @@ class CliIntegrationTests(unittest.TestCase):
         self.assertEqual(config["locale"], "zh-CN")
         self.assertEqual(self.run_cli("validate").returncode, 0)
 
+    def test_branch_validation_distinguishes_case_but_rejects_exact_duplicates(self) -> None:
+        vault = self.root / "vault"
+        self.assertEqual(self.run_cli("init", "--vault", str(vault), "--github-owner",
+                                     "Example", "--no-writable-root").returncode, 0)
+        folder = vault / "20-projects" / "demo"
+        folder.mkdir()
+        index = vault / "20-projects" / "project-index.md"
+        with index.open("a", encoding="utf-8") as handle:
+            handle.write("\n[[20-projects/demo/upper]]\n[[20-projects/demo/lower]]\n")
+        for filename, branch in (("upper", "Release"), ("lower", "release")):
+            (folder / f"{filename}.md").write_text(
+                f"---\ntype: branch\ngithub_repo: Example/demo\nworking_branch: {branch}\n---\n"
+                "[[20-projects/project-index]]\n", encoding="utf-8")
+        valid = self.run_cli("validate")
+        self.assertEqual(valid.returncode, 0, valid.stdout + valid.stderr)
+        duplicate = folder / "duplicate.md"
+        duplicate.write_text((folder / "upper.md").read_text(encoding="utf-8").replace(
+            "Example/demo", "example/DEMO"), encoding="utf-8")
+        invalid = self.run_cli("validate")
+        self.assertNotEqual(invalid.returncode, 0)
+        self.assertIn("example/demo:Release", json.loads(invalid.stdout)["duplicate_branch_identities"])
+
     def make_fake_codex(self, exit_code: int, report: Path | None = None) -> Path:
         update = ""
         if report is not None:

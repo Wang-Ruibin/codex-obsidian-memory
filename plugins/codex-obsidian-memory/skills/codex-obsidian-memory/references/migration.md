@@ -42,3 +42,9 @@ python ../../scripts/memoryctl.py init --vault /absolute/path/to/vault --github-
 ```
 
 On Windows, use `py.exe` if `python` is unavailable. Run `status` and `validate` immediately afterwards. If either check reports a problem, keep automatic memory paused and ask Codex to explain what needs attention.
+
+## Verify the first saved memory
+
+Ask Codex to check whether the project you opened is in scope; a healthy vault alone does not establish that. Then save one genuine project preference, inspect the named note, and start a new conversation in the same project and branch to ask for that preference and its source. If it is missing, check hook trust and project scope before initializing again.
+
+When a writeback review is rejected, use one bullet per changed note with a vault-relative path and a concrete description. Include the directory when several project folders contain the same filename. On Windows, give branches such as `Release` and `release` different note filenames while preserving their exact `working_branch` values.

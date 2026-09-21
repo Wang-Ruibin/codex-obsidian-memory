@@ -99,6 +99,31 @@ github_repo: Example/demo
         self.assertIn("Project index", context)
         self.assertIn("not indexed yet", context)
 
+    def test_branch_case_and_repository_identity_are_exact(self) -> None:
+        project = self.vault / "20-projects" / "demo" / "demo.md"
+        for filename, branch, repository, body in (
+            ("release-upper", "Release", "Example/demo", "UPPER BRANCH"),
+            ("release-lower", "release", "example/DEMO", "LOWER BRANCH"),
+            ("wrong-repo", "Release", "Other/demo", "WRONG REPOSITORY"),
+        ):
+            with project.open("a", encoding="utf-8") as handle:
+                handle.write(f"\n[[{filename}]]\n")
+            (project.parent / f"{filename}.md").write_text(
+                f"---\ntype: branch\ngithub_repo: {repository}\nworking_branch: {branch}\n---\n{body}\n",
+                encoding="utf-8",
+            )
+        for branch, wanted, unwanted in (("Release", "UPPER BRANCH", "LOWER BRANCH"),
+                                         ("release", "LOWER BRANCH", "UPPER BRANCH")):
+            scope = hook.Scope("github-project", self.vault, "Example/demo", branch, project)
+            context = hook.build_context(scope, self.config, self.vault)
+            self.assertIn(wanted, context)
+            self.assertNotIn(unwanted, context)
+            self.assertNotIn("WRONG REPOSITORY", context)
+        scope = hook.Scope("github-project", self.vault, "Example/demo", "", project)
+        context = hook.build_context(scope, self.config, self.vault)
+        self.assertNotIn("UPPER BRANCH", context)
+        self.assertNotIn("LOWER BRANCH", context)
+
     def test_scope_matrix(self) -> None:
         cwd = Path(self.temporary.name) / "work"
         cwd.mkdir()
@@ -166,6 +191,21 @@ github_repo: Example/demo
                 self.assertEqual(hook.main(), 0)
             marker_only = json.loads(output.getvalue())
             self.assertEqual(marker_only["decision"], "block")
+
+            # A retry must not bypass missing per-file summaries or discard evidence.
+            stop["stop_hook_active"] = True
+            stop["last_assistant_message"] = (
+                "## Knowledge-base writeback review\n- Memory updated.\n"
+                "<!-- obsidian-memory-writeback-disclosed -->\n<!-- obsidian-memory-reviewed -->"
+            )
+            with (
+                patch.object(hook, "load_event", return_value=stop),
+                patch.object(hook, "load_config", return_value=self.config),
+                patch.object(sys, "stdout", new_callable=StringIO) as output,
+            ):
+                self.assertEqual(hook.main(), 0)
+            self.assertEqual(json.loads(output.getvalue())["decision"], "block")
+            self.assertTrue(snapshot_path.exists())
 
             stop["last_assistant_message"] = (
                 "## Knowledge-base writeback review\n"

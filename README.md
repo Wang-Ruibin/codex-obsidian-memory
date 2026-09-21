@@ -225,7 +225,7 @@ Repository identity is read with non-mutating Git commands. SSH credentials, pri
 - Memory stays local: no telemetry, no remote memory service, no credential collection.
 - Every note is resolved inside the configured vault, and common secret patterns are redacted before injection.
 - Hooks stay silent in ordinary folders, on other Git hosts and in excluded repositories.
-- Version 0.4.0 cannot safely distinguish branch names that differ only by uppercase and lowercase letters, such as `Release` and `release`. Avoid that naming pattern for now.
+- Branch names are matched exactly, including case. Keep separate note filenames such as `release-upper.md` and `release-lower.md` for `Release` and `release` on filesystems that ignore filename case.
 - No command deletes or moves your vault. Uninstall stops the integration and removes the access entry added during setup; diagnostic history is kept unless you ask Codex to remove it too.
 - Scheduled audits may recommend archival, but never delete, move or archive notes on their own.
 
@@ -238,12 +238,13 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 | Hook is silent | Ask Codex to run `status`, verify the GitHub `origin`, and check exclusions. |
 | Hook is installed but skipped | Trust it in `/hooks`, then start a new conversation. |
 | Wrong branch context | Check `git branch --show-current` and the exact `working_branch` frontmatter. |
-| Branches differ only by letter case | Rename one branch or keep only one matching page; version 0.4.0 treats those names as the same branch. |
+| Branches differ only by letter case | Use distinct note filenames and preserve the exact branch name inside each note; ask Codex to check the mapping. |
 | Detached HEAD | No exact branch page can be selected until a branch is checked out. |
 | Some memory seems missing | Keep project homes and linked notes concise, or ask Codex to open the specific note directly. Very large memory pages may be shortened when loaded. |
 | Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
 | Scheduled reports | The machine needs a working non-interactive Codex login. |
 | A write occurred but no disclosure appeared | Do not accept the result; verify the hook is trusted and start a new conversation. |
+| Codex is asked to complete the writeback review again | Each changed note needs its own bullet with its vault-relative path and a concrete description. A filename or “updated” alone is not enough; ask Codex to complete the listed missing entries. |
 
 ## Documentation
 

@@ -28,3 +28,5 @@ python -m unittest discover -s tests -v
 - 同一次修改中同步更新英文源文档和对应 `zh-CN` 翻译，保持标题、代码块、警告和本地链接结构一致。
 
 大型结构迁移前请先创建 Issue。Pull Request 应说明用户可见结果、执行过的测试及兼容性影响。
+
+如需在不修改原知识库的前提下进行可复现检查，参见[接管验证](adoption-verification.md)。
