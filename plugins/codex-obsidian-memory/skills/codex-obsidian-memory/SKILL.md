@@ -22,6 +22,10 @@ Manage the local-first memory integration packaged with this plugin. Lifecycle h
 
 On Windows, prefer `py.exe` when `python` is unavailable.
 
+## Cross-project experience reuse
+
+Before substantial implementation, after failure or before changing strategy, search shared lessons first, falling back to eligible project notes; explicitly search projects when shared candidates do not apply. Use `search` and `read` on demand, check conditions and provenance, and treat historical branches as references only. Read [reuse.md](references/reuse.md) when retrieving or distilling verified lessons, adapting older vaults or handling conflicts.
+
 ## Safety invariants
 
 - Obtain approval immediately before changing global Codex configuration, creating scheduler entries, or removing integration state.

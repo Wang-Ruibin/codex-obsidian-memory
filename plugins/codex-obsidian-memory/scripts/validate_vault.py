@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from memory_core import frontmatter_value, load_config, vault_path
+from reuse_memory import lesson_errors, note_paths, project_notes, read_text
 
 
 if hasattr(sys.stdout, "reconfigure"):
@@ -113,6 +114,19 @@ def main() -> int:
         if len(paths) > 1
     }
     graph = graph_report(vault, files)
+    sources = {note.path.relative_to(vault).as_posix(): note for note in project_notes(vault, config)}
+    reuse_errors = {}
+    reusable_lessons = 0
+    for path in note_paths(vault, vault_path(vault, config, "reuse_dir")):
+        text = read_text(path)
+        if text is None or frontmatter_value(text, "type") != "reusable-memory":
+            continue
+        if frontmatter_value(text, "status") == "retired":
+            continue
+        reusable_lessons += 1
+        errors = lesson_errors(text, vault, sources)
+        if errors:
+            reuse_errors[path.relative_to(vault).as_posix()] = errors
     report = {
         "vault": str(vault),
         "required_files_missing": missing,
@@ -120,6 +134,8 @@ def main() -> int:
         "branch_pages": sum(len(paths) for paths in branch_identities.values()),
         "duplicate_project_homes": duplicate_projects,
         "duplicate_branch_identities": duplicate_branches,
+        "reusable_lessons": reusable_lessons,
+        "reusable_lesson_errors": reuse_errors,
         **graph,
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -127,6 +143,7 @@ def main() -> int:
         missing
         or duplicate_projects
         or duplicate_branches
+        or reuse_errors
         or graph["broken_links"]
         or graph["orphans"]
     )

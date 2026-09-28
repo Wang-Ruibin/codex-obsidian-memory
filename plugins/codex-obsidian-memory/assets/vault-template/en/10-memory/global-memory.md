@@ -22,4 +22,4 @@ Keep only facts that apply across repositories.
 
 ## Reusable failure lessons
 
-- None recorded yet.
+Use [[10-memory/reusable/index|Reusable experience index]] for detailed methods and failures. Keep stable preferences here; do not duplicate lesson bodies.

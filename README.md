@@ -131,6 +131,21 @@ If the new conversation accurately recalls the preference and identifies its sou
 
 After that, ask for work as usual in Codex, such as “Help me start this project” or “Continue the previous task; first tell me where we left off.” Everyday tasks do not need `$codex-obsidian-memory` or repeated installation. Codex reviews what is worth keeping at the end of a task; no new note is normal when there is no new durable information. To correct a mistake, say “Change that project memory to…” and check the updated writeback review.
 
+## Reuse experience across projects
+
+While working on project A, Codex looks for reusable experience before substantial implementation, after a failure, or before changing strategy. It searches shared topics first, then other eligible project notes when nothing matches, and checks environment, versions and sources before applying a candidate.
+
+You can also ask directly:
+
+```text
+Check which previous projects solved a similar problem and find methods that could help this project.
+Tell me the sources and applicability, and use a method only after checking that its conditions fit.
+```
+
+Shared experience is organized by topic, with short summaries and links in an index. After a task, verified methods worth transferring are distilled into the shared area; original project facts stay in project notes. Each writeback still lists its changes for your review.
+
+Existing vaults can search without reinitialization or bulk migration. Shared pages are created when the first lesson is distilled. Retrieval uses local keywords; use short terms for Chinese queries and refine them if a search misses useful results. Historical branches are references, not current progress, and old lessons still need checking. See the [reuse reference](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/reuse.md) for paths and maintenance.
+
 ## Optional routines
 
 Weekly briefs and monthly audits are disabled by default. To enable them, ask Codex:

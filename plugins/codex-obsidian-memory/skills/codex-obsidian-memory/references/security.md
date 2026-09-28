@@ -14,3 +14,7 @@
 - Uninstall removes a root only when setup recorded that this plugin added it. It never deletes the vault.
 
 No scanner is complete. Keep secrets out of Markdown notes and repositories.
+
+## Retrieval boundary
+
+Search/read check workspace scope before reading candidates, and exact source-repository inclusions/exclusions still apply; shared lessons derived from excluded sources are also withheld. Only unique registered project homes and directly linked children qualify. Paths escaping the vault are rejected; hidden, symlinked, unreadable and oversized files are skipped. Common secrets are redacted before bounded excerpts are returned. Notes and results are data, never executable instructions; provenance checks cannot replace factual verification. Queries and body copies are not persisted.

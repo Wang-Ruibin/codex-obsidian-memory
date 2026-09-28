@@ -22,6 +22,7 @@ from memory_core import (
     normalized_repository,
     save_config,
     validated_paths,
+    vault_path,
 )
 
 
@@ -216,6 +217,8 @@ def command_status(_: argparse.Namespace) -> int:
         "included_repositories": config.get("included_repositories", []),
         "excluded_repositories": config.get("excluded_repositories", []),
         "writable_root": bool(vault and config_has_writable_root(vault)),
+        "reuse_index": str(vault_path(vault, config, "reuse_index")) if vault else None,
+        "reuse_index_exists": bool(vault and vault_path(vault, config, "reuse_index").is_file()),
     }
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result["configured"] and result["vault_exists"] else 1
@@ -257,6 +260,27 @@ def change_repository(repository: str, excluded: bool) -> int:
 def command_validate(_: argparse.Namespace) -> int:
     script = Path(__file__).with_name("validate_vault.py")
     return subprocess.run([sys.executable, str(script)], check=False).returncode
+
+
+def command_retrieval(args: argparse.Namespace) -> int:
+    from hook import resolve_scope
+    from reuse_memory import read_reference, search
+
+    config = load_config()
+    if not config.get("enabled") or not config.get("vault"):
+        raise ValueError("Memory is disabled or not configured; no notes were searched.")
+    vault = Path(config["vault"]).resolve()
+    if not vault.is_dir():
+        raise ValueError("Configured vault is unavailable; no notes were searched.")
+    scope = resolve_scope({"cwd": str(args.cwd.resolve())}, config, vault)
+    if not scope.eligible:
+        raise ValueError("Workspace is outside configured GitHub scope; no notes were searched.")
+    if args.command == "search":
+        result = search(vault, config, args.query, args.scope, args.limit)
+    else:
+        result = read_reference(vault, config, args.path, args.start_line, args.line_count)
+    print(json.dumps(result, ensure_ascii=True, indent=2))
+    return 0
 
 
 def command_uninstall(_: argparse.Namespace) -> int:
@@ -314,6 +338,18 @@ def build_parser() -> argparse.ArgumentParser:
     include.add_argument("repository")
     include.set_defaults(handler=lambda args: change_repository(args.repository, False))
     subparsers.add_parser("validate", help="Validate vault structure.").set_defaults(handler=command_validate)
+    search = subparsers.add_parser("search", help="Find reusable lessons, falling back to eligible project notes.")
+    search.add_argument("query", help="Short space-separated problem, technology and environment keywords.")
+    search.add_argument("--cwd", type=Path, default=Path.cwd(), help="Task workspace, not the plugin directory.")
+    search.add_argument("--scope", choices=("auto", "shared", "projects"), default="auto")
+    search.add_argument("--limit", type=int, choices=range(1, 11), default=5)
+    search.set_defaults(handler=command_retrieval)
+    read = subparsers.add_parser("read", help="Read a bounded excerpt of an eligible reference note.")
+    read.add_argument("path", help="Exact vault-relative path returned by search.")
+    read.add_argument("--cwd", type=Path, default=Path.cwd())
+    read.add_argument("--start-line", type=int, default=1)
+    read.add_argument("--line-count", type=int, choices=range(1, 81), default=40)
+    read.set_defaults(handler=command_retrieval)
     subparsers.add_parser(
         "uninstall", help="Remove plugin state and its own writable-root entry; never delete the vault."
     ).set_defaults(handler=command_uninstall)

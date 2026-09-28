@@ -24,6 +24,9 @@ DEFAULT_PATHS = {
     "projects_dir": "20-projects",
     "weekly_brief": "10-memory/weekly-brief.md",
     "monthly_audit": "10-memory/monthly-audit.md",
+    "reuse_dir": "10-memory/reusable",
+    "reuse_index": "10-memory/reusable/index.md",
+    "reuse_template": "10-memory/reusable/template.md",
 }
 
 
@@ -78,7 +81,7 @@ def save_config(config: dict[str, Any]) -> None:
     atomic_write(config_path(), json.dumps(config, ensure_ascii=False, indent=2) + "\n")
 
 
-def redact_secrets(text: str) -> str:
+def redact_secrets(text: str, *, preserve_lines: bool = False) -> str:
     patterns = (
         (r"sk-[A-Za-z0-9_-]{16,}", "[REDACTED_SECRET]"),
         (r"gh[pousr]_[A-Za-z0-9]{20,}", "[REDACTED_SECRET]"),
@@ -91,7 +94,12 @@ def redact_secrets(text: str) -> str:
     )
     result = text
     for pattern, replacement in patterns:
-        result = re.sub(pattern, replacement, result, flags=re.DOTALL | re.IGNORECASE)
+        result = re.sub(
+            pattern,
+            lambda match: replacement + ("\n" * match.group().count("\n") if preserve_lines else ""),
+            result,
+            flags=re.DOTALL | re.IGNORECASE,
+        )
     return result
 
 
@@ -159,7 +167,7 @@ def path_is_within(path: Path, parent: Path) -> bool:
 
 
 def vault_path(vault: Path, config: dict[str, Any], key: str) -> Path:
-    relative = Path(str((config.get("paths") or DEFAULT_PATHS)[key]))
+    relative = Path(str({**DEFAULT_PATHS, **(config.get("paths") or {})}[key]))
     if relative.is_absolute():
         raise ValueError(f"Vault path must be relative: {key}")
     resolved = (vault / relative).resolve()
@@ -186,9 +194,26 @@ def frontmatter_value(text: str, key: str) -> str:
     if not frontmatter:
         return ""
     match = re.search(
-        rf"(?m)^{re.escape(key)}:\s*['\"]?([^'\"\r\n]+)", frontmatter.group("body")
+        rf"(?m)^{re.escape(key)}:[\t ]*['\"]?([^'\"\r\n]*)", frontmatter.group("body")
     )
     return match.group(1).strip() if match else ""
+
+
+def repository_allowed(repository: str, config: dict[str, Any], *, indexed: bool) -> bool:
+    """Share the same exact repository scope between hooks and reference retrieval."""
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+        return False
+    key = repository.casefold()
+    if key in {str(value).casefold() for value in config.get("excluded_repositories", [])}:
+        return False
+    if key in {str(value).casefold() for value in config.get("included_repositories", [])}:
+        return True
+    mode = config.get("scope_mode", "github-owner")
+    if mode == "indexed-only":
+        return indexed
+    return mode == "github-owner" and key.split("/", 1)[0] in {
+        str(value).casefold() for value in config.get("github_owners", [])
+    }
 
 
 def find_project_page(vault: Path, config: dict[str, Any], repository: str) -> Path | None:
@@ -196,6 +221,8 @@ def find_project_page(vault: Path, config: dict[str, Any], repository: str) -> P
     if not repository or not projects_dir.is_dir():
         return None
     for candidate in sorted(projects_dir.rglob("*.md"), key=lambda path: str(path).casefold()):
+        if not path_is_within(candidate, projects_dir):
+            continue
         try:
             note = candidate.read_text(encoding="utf-8")
         except OSError:

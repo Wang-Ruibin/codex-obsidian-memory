@@ -7,6 +7,9 @@ Use this reference when changing note paths, graph routing, project identity or 
 ```text
 00-memory-home
 ├── 10-memory/global-memory
+├── 10-memory/reusable/index
+│   ├── template
+│   └── <topic>
 ├── 10-memory/maintenance
 │   └── 10-memory/project-template
 └── 20-projects/project-index
@@ -27,3 +30,7 @@ The knowledge and project clusters have one intentional bridge: memory home to p
 - The project home directly links every branch and repository-level child page.
 
 Keep stable goals, constraints, background, reasoned decisions, verified outcomes, reusable failures, blockers and concrete next steps. Do not keep transcripts, raw output, facts directly available from code, or secrets.
+
+## Shared experience
+
+The shared index holds only topic summaries, keywords and links; lesson bodies are read on demand. Source repository, exact branch, note path and verification date are plain topic fields, not cross-project Wiki links. Automatic context remains scoped to the current project and exact branch; retrieved historical branches are always references. See [reuse.md](reuse.md).

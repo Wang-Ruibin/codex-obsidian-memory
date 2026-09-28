@@ -32,6 +32,9 @@ Most users can stop here and let Codex build the mapping. If you need to review 
 | `projects_dir` | Repository folders | `20-projects` |
 | `weekly_brief` | Weekly report | `10-memory/weekly-brief.md` |
 | `monthly_audit` | Monthly report | `10-memory/monthly-audit.md` |
+| `reuse_dir` | Shared topic directory | `10-memory/reusable` |
+| `reuse_index` | Short shared index | `10-memory/reusable/index.md` |
+| `reuse_template` | Lesson authoring template | `10-memory/reusable/template.md` |
 
 ## Manual example
 
@@ -48,3 +51,7 @@ On Windows, use `py.exe` if `python` is unavailable. Run `status` and `validate`
 Ask Codex to check whether the project you opened is in scope; a healthy vault alone does not establish that. Then save one genuine project preference, inspect the named note, and start a new conversation in the same project and branch to ask for that preference and its source. If it is missing, check hook trust and project scope before initializing again.
 
 When a writeback review is rejected, use one bullet per changed note with a vault-relative path and a concrete description. Include the directory when several project folders contain the same filename. On Windows, give branches such as `Release` and `release` different note filenames while preserving their exact `working_branch` values.
+
+## Adding experience reuse
+
+Existing vaults can search without reinitialization; an absent shared area falls back to project notes. Add the index and topic at configured paths only when a verified lesson exists. Do not rerun `init` or overwrite the old protocol for this; merge retrieval and distillation rules only where needed while preserving scope and settings. See [reuse.md](reuse.md) for new paths, older branch restrictions and template-link adaptation. Other branches may be explicitly labeled historical references, never current progress.

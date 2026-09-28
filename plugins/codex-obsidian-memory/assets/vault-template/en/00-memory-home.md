@@ -11,6 +11,7 @@ tags:
 
 - [[10-memory/global-memory|Global memory]]
 - [[10-memory/maintenance|Memory maintenance]]
+- [[10-memory/reusable/index|Reusable experience index]]
 
 ## Projects
 

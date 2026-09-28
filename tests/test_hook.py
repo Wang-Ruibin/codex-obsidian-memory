@@ -99,6 +99,30 @@ github_repo: Example/demo
         self.assertIn("Project index", context)
         self.assertIn("not indexed yet", context)
 
+    def test_retrieval_guidance_is_small_and_does_not_inject_shared_bodies(self) -> None:
+        reuse = self.vault / "10-memory/reusable"
+        (reuse / "index.md").write_text("ENTIRE SHARED INDEX", encoding="utf-8")
+        (reuse / "lesson.md").write_text("OTHER PROJECT FULL LESSON", encoding="utf-8")
+        scope = hook.Scope("github-project", self.vault, "Example/demo", "main",
+                           self.vault / "20-projects/demo/demo.md")
+        context = hook.build_context(scope, self.config, self.vault)
+        self.assertIn("memoryctl.py", context)
+        self.assertIn("--scope projects", context)
+        self.assertIn("Cross-project reference discovery", context)
+        self.assertNotIn("ENTIRE SHARED INDEX", context)
+        self.assertNotIn("OTHER PROJECT FULL LESSON", context)
+        self.assertNotIn("FEATURE ONLY", context)
+
+    def test_reuse_instructions_precede_large_notes(self) -> None:
+        global_note = self.vault / "10-memory/global-memory.md"
+        global_note.write_text("LARGE NOTE " * 4000, encoding="utf-8")
+        scope = hook.Scope("github-project", self.vault, "Example/demo", "main",
+                           self.vault / "20-projects/demo/demo.md")
+        context = hook.build_context(scope, self.config, self.vault)
+        self.assertIn("Cross-project reference discovery", context[:10000])
+        self.assertIn("--scope projects", context[:10000])
+        self.assertLess(context.index("Cross-project reference discovery"), context.index("LARGE NOTE"))
+
     def test_branch_case_and_repository_identity_are_exact(self) -> None:
         project = self.vault / "20-projects" / "demo" / "demo.md"
         for filename, branch, repository, body in (

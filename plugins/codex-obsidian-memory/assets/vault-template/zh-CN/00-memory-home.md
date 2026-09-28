@@ -11,6 +11,7 @@ tags:
 
 - [[10-memory/global-memory|全局记忆]]
 - [[10-memory/maintenance|记忆维护]]
+- [[10-memory/reusable/index|可复用经验索引]]
 
 ## 项目
 
