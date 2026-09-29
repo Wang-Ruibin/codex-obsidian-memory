@@ -21,7 +21,7 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 - Use selected GitHub repositories or explicitly enable a local project, including an ordinary folder without Git. Unregistered folders stay silent.
 - Branch pages are created when durable branch-specific progress exists, so parallel lines of work can stay separate without filling the vault with empty placeholders.
 - Only durable facts are kept — decisions, outcomes, reusable failures and next steps — never chat transcripts.
-- Whenever memory changes during a task, Codex is required to show a **Knowledge-base writeback review** with every changed file and a plain-language summary, so you can correct it before relying on the new memory.
+- When this task changes its project memory or a shared lesson reserved for this task, Codex shows a **Knowledge-base writeback review** with each affected file and a plain-language summary, so you can correct it before relying on the new memory.
 - Setup is reversible: disable or uninstall the integration without deleting the vault.
 - The runtime uses only the Python standard library.
 
@@ -161,6 +161,8 @@ Tell me the sources and applicability, and use a method only after checking that
 ```
 
 Shared experience is organized by topic, with short summaries and links in an index. After a task, verified methods worth transferring are distilled into the shared area; original project facts stay in project notes. Each writeback still lists its changes for your review.
+
+When several conversations work at once, each project reviews only its own notes. Before a conversation edits a shared lesson or global memory, Codex reserves that specific note; another conversation waits until the first review finishes. Conversations editing the same note within one project should coordinate, because overlapping edits to one file can still conflict.
 
 Existing vaults can search without reinitialization or bulk migration. Shared pages are created when the first lesson is distilled. Retrieval uses local keywords; use short terms for Chinese queries and refine them if a search misses useful results. Historical branches are references, not current progress, and old lessons still need checking. See the [reuse reference](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/reuse.md) for paths and maintenance.
 

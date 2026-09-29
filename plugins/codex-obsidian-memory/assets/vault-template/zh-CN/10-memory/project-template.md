@@ -37,6 +37,8 @@ tags:
 
 `source_kind` 使用 `owned` 或 `fork`。
 
+新纳入范围的 GitHub 仓库应通过平台启动器执行 `memoryctl.py register-github --cwd <workspace> --review-token <current-turn-token>`。它在知识库级登记锁内只建立并链接一个主页，防止另一个对话同时覆盖项目总览。本轮任务需审查返回的修改文件。
+
 ## 分支页
 
 ```markdown

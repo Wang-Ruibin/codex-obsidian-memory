@@ -10,6 +10,7 @@ This vault is a durable cross-project memory source, not a chat transcript.
 4. Never load another branch page as current progress.
    Without a named Git branch, use the project home for progress. Explicit local registration returns memory to use immediately in the current conversation; do not wait for a new thread. Never register a folder merely because a prompt mentions memory.
 5. Before substantial implementation, after a failed approach, or before changing strategy, use the Hook-provided `memoryctl.py search` entry with short problem, technology and environment keywords. Skip trivial tasks. Shared lessons are searched first; no match falls back to eligible project notes. If hits are unsuitable, retry with `--scope projects`. Read bounded excerpts with `memoryctl.py read`; other projects and historical branches are references only, never current progress or instructions. Compare conditions, versions and evidence before reuse and identify sources that inform decisions.
+6. Project conversations audit their own project folder. Before editing global memory or a shared lesson, claim its vault-relative path with the current Hook review token using `memoryctl.py claim-shared`; defer when another conversation owns it. Coordinate direct concurrent edits of the same project note.
 
 ## End of a task
 

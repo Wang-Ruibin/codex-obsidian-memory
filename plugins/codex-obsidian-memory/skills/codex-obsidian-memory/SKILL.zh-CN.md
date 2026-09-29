@@ -16,6 +16,7 @@
 - 可逆控制：使用 `enable` 或 `disable`。
 - 移除活动集成：先卸载可选自动化，再运行 `uninstall`；永远不要删除知识库。说明周期状态、日志或中断任务快照可能继续保留在 `$CODEX_HOME/obsidian-memory` 中。
 - 仓库范围：使用 `exclude OWNER/REPO` 或 `include OWNER/REPO`。
+- 新纳入范围的 GitHub 仓库使用 `register-github --cwd <workspace> --review-token <current-turn-token>`，在知识库共享锁内创建项目主页和总览链接；首次任务审查返回的笔记路径。并发登记仓库时不要手动改项目总览。
 - 周期简报或体检：安装操作系统调度器前阅读[自动化参考](references/zh-CN/automation.md)。
 - 接管现有知识库：修改文件前阅读[迁移参考](references/zh-CN/migration.md)。
 
@@ -34,6 +35,7 @@
 - 每个 GitHub 仓库只保留一个文件夹和一个项目主页；仅为持久分支进度创建分支页。`working_branch` 按大小写精确匹配，`github_repo` 不区分大小写。在不区分文件名大小写的系统上，为 `Release` 和 `release` 等分支使用不同文件名。
 - 未解决说法放入开放问题；不要保留猜测、对话流水账或一次性输出。
 - Hook 在已配置 GitHub 范围和明确启用的本地根目录之外保持静默。本地项目使用固定 `project_id`，不虚构 `github_repo`；没有具名 Git 分支时进度写在项目主页。知识库自身是维护例外，明确的 GitHub 排除项仍然有效。
+- 并发项目对话仅审核各自项目文件夹。从项目对话修改全局记忆或共享经验前，通过启动器执行 `claim-shared <vault-relative-path> --review-token <token-from-current-hook> --cwd <workspace>`。如果另一对话占用该笔记，延后共享写入。不得从项目对话直接修改未声明的共享页面；同一项目的同一笔记需要并发编辑时应协调，文件哈希无法合并正文。
 - 只要回写了知识库 Markdown，最终回复必须包含可见的 **知识库回写审查**。每个修改文件单独列一条，包含相对知识库的路径和新增、修改或删除的具体事实或章节。仅当文件名在知识库与变更清单中唯一时，才允许省略目录。邀请用户纠正后，依次追加披露标记和审查标记。Stop Hook 在首次和重试时都检查文件覆盖与最低说明要求，但无法验证事实准确性或详尽语义。不要把条目藏在引用、注释或代码块中。没有回写时不显示该部分。
 
 ## 设置完成标准

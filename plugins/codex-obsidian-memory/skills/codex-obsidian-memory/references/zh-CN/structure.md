@@ -24,6 +24,7 @@
 
 - 项目主页具有 `type: project`，以及精确 `github_repo: OWNER/REPO` 或已登记的 `project_id: local:<32 lowercase hex digits>`，两者不能同时填写。
 - 一个仓库对应一个文件夹和一个项目主页。
+- 新 GitHub 主页通过 `register-github` 登记，使跨客户端的项目总览变更串行；明确登记本地项目复用同一知识库级锁。已有项目主页保持精确身份。
 - 分支页具有 `type: branch`、相同 `github_repo` 和精确区分大小写的 `working_branch`。`Release` 和 `release` 属于不同身份；仓库和精确分支名都相同的两个页面仍是重复。在不区分文件名大小写的系统上，请使用 `release-upper.md` 和 `release-lower.md` 等不同文件名；分支身份不由文件名决定。
 - 文件名可以替换路径分隔符，但 `working_branch` 保留原始 Git 名称。
 - 只有存在持久分支背景时才创建分支页，不要求为每次 checkout 建立空页面。

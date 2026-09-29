@@ -37,6 +37,8 @@ tags:
 
 Use `source_kind: owned` or `fork`.
 
+For a newly eligible GitHub repository, use `memoryctl.py register-github --cwd <workspace> --review-token <current-turn-token>` through the platform launcher. It creates and links one home under the vault-wide registration lock, so another conversation cannot overwrite the same index at that moment. Review the returned changed notes in the current task.
+
 ## Branch page
 
 ```markdown

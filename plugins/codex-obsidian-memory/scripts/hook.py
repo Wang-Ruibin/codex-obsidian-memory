@@ -164,8 +164,9 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
     if unregistered:
         registration = (
             "\nThis eligible GitHub repository is not indexed yet. Before the task ends, "
-            "create one project folder and project home from the template, then link it from "
-            "the project index. Create a branch page only when durable branch-specific progress exists."
+            "use register-github --cwd <workspace> --review-token <this turn's token> through the memory launcher to create its home "
+            "and index link under the vault's shared lock. Review the returned note changes. "
+            "Create a branch page only when durable branch-specific progress exists."
         )
         if scope.kind == "local-project":
             registration = (
@@ -272,7 +273,13 @@ def main() -> int:
 
     if event_name == "Stop":
         last_message = str(event.get("last_assistant_message") or "")
-        changes = review_changes(event, vault)
+        owner = scope.project_id or scope.repository.casefold()
+        try:
+            changes = review_changes(event, vault, project_root=scope.project_page.parent if scope.project_page else None,
+                                     owner=owner)
+        except ValueError as exc:
+            emit({"decision": "block", "reason": str(exc)})
+            return 0
         local = registered_project(config, scope.project_id) if scope.project_id else None
         for relative in (local or {}).get("pending_review", []):
             if not any(path == relative for _, path in changes):
@@ -340,8 +347,24 @@ def main() -> int:
         )
     else:
         if event_name == "UserPromptSubmit":
-            save_review_snapshot(event, vault)
+            owner = scope.project_id or scope.repository.casefold()
+            save_review_snapshot(event, vault, owner=owner,
+                                 project_root=scope.project_page.parent if scope.project_page else None)
         context = build_context(scope, config, vault)
+        if event_name == "UserPromptSubmit" and scope.kind != "vault":
+            snapshot = review_snapshot_path(event)
+            if snapshot is not None:
+                shared_guidance = (
+                    "\n[Concurrent shared-note editing]\n"
+                    "Before editing global memory or a shared lesson, reserve its vault-relative path with "
+                    f"claim-shared <path> --review-token {snapshot.stem} --cwd <workspace>. "
+                    "Only this turn may then modify and review that shared note; concurrent claims fail. "
+                    "If a claim cannot be made, record the finding on this project's page and retry shared "
+                    "distillation after the other conversation finishes. Project reviews cover this project's "
+                    "folder and explicitly claimed shared notes; other projects' edits are never this review.\n"
+                )
+                context = context.replace("\n\n[Cross-project reference discovery]",
+                                          shared_guidance + "\n[Cross-project reference discovery]", 1)
     emit(
         {
             "hookSpecificOutput": {

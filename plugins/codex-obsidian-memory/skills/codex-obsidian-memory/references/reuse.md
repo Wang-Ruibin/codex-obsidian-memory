@@ -36,6 +36,20 @@ Before creating a topic, search existing lessons and update the same topic where
 
 Mark obsolete lessons `status: retired`, retain their files, and label their index entries. Retired lessons are neither search candidates nor active provenance-validation targets. Missing/excluded sources or mismatched branch metadata make active shared lessons ineligible and cause `validate` to report them for review. Never automatically move or delete notes. After any vault change, validate and give the usual per-file writeback review.
 
+## Concurrent conversations
+
+The Hook stores one review snapshot per session and turn. A project snapshot hashes only its own project folder; a newly indexed GitHub project also tracks its project-index update. Other projects' note changes are excluded before the Stop review is built. A local registration's pending review lists only that project's created home and index link. Vault maintenance conversations intentionally inspect the entire vault and should avoid overlapping with project write tasks.
+
+To edit a shared lesson or global-memory note from a project conversation, use the exact review token injected by this turn's Hook. Run the platform launcher with:
+
+```bash
+sh ../../scripts/memoryctl.sh claim-shared 10-memory/reusable/example.md --review-token <current-turn-token> --cwd /absolute/path/to/project
+```
+
+Use the configured vault-relative path, not this example, and do not store the token in a note. The command checks the current workspace and reserves that one shared file. The Stop review includes the file's change from its claim-time digest; the reservation ends only after an accepted visible review. Another conversation receives a busy result and must wait. If the turn has no review token, keep the conclusion in the project note and defer the shared edit. Unclaimed shared changes cannot be assigned safely to a project turn from vault-wide hashes.
+
+Distinct projects and their reviews are isolated, including when their work overlaps in time. Direct concurrent writes to one note within the same project, or to shared notes outside the claim workflow, can still overwrite text; coordinate those edits. See [security.md](security.md).
+
 ## Existing vaults and custom paths
 
 No migration is required for retrieval: old configuration files inherit the new default path keys; an absent shared area simply falls back to project search. The new files are optional for validation of older vaults. Search/read never create directories or edit configuration. Do not re-run `init` just to gain this feature; it replaces integration settings.

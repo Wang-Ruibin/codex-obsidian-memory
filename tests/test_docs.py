@@ -115,7 +115,7 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.7.0")
+        self.assertEqual(manifest["version"], "0.7.1")
 
     def test_hooks_use_platform_runtime_launchers(self) -> None:
         plugin = json.loads((PLUGIN / "hooks/hooks.json").read_text(encoding="utf-8"))

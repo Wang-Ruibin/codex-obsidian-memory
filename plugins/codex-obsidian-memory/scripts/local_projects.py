@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import uuid
 from datetime import date
 from pathlib import Path
@@ -11,7 +12,8 @@ from typing import Any
 
 from memory_core import (
     atomic_write, config_path, frontmatter_value, git_value, load_config,
-    note_identity, path_is_within, repository_identity, vault_path,
+    find_project_page, note_identity, path_is_within, record_registered_index,
+    repository_allowed, repository_identity, review_payload_for_token, vault_path,
 )
 
 
@@ -128,20 +130,46 @@ def commit_registration(config: dict[str, Any], writes: dict[Path, str]) -> None
         raise
 
 
+def commit_notes_only(writes: dict[Path, str]) -> None:
+    originals = {path: path.read_text(encoding="utf-8") if path.is_file() else None for path in writes}
+    completed = []
+    try:
+        for path, text in writes.items():
+            atomic_write(path, text)
+            completed.append(path)
+    except BaseException:
+        for path in reversed(completed):
+            if not path.is_file() or path.read_text(encoding="utf-8") != writes[path]:
+                continue
+            if originals[path] is None:
+                path.unlink()
+            else:
+                atomic_write(path, originals[path])
+        raise
+
+
 def command_local(args: Any) -> int:
     # Serialize registration updates; normal Hooks and reads never create this lock.
     if not config_path().is_file():
         raise ValueError("Initialize a vault first; use init --local-only if you do not use GitHub")
     lock = config_path().with_suffix(".local-projects.lock")
-    try:
-        descriptor = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    except FileExistsError:
-        raise ValueError("A local registration update is already running; retry after it finishes") from None
+    descriptor = acquire_lock(lock, "A local registration update is already running")
     try:
         os.close(descriptor)
         return update_local(args)
     finally:
         lock.unlink(missing_ok=True)
+
+
+def acquire_lock(path: Path, busy_message: str, wait_seconds: float = 10) -> int:
+    deadline = time.monotonic() + wait_seconds
+    while True:
+        try:
+            return os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        except FileExistsError:
+            if time.monotonic() >= deadline:
+                raise ValueError(busy_message + "; retry after it finishes") from None
+            time.sleep(0.05)
 
 
 def clear_local_review(identity: str) -> None:
@@ -168,6 +196,20 @@ def update_local(args: Any) -> int:
     vault = Path(config["vault"]).resolve()
     if not vault.is_dir():
         raise ValueError("Configured vault is unavailable")
+    lock_dir = vault / ".codex-obsidian-memory"
+    if not path_is_within(lock_dir, vault):
+        raise ValueError("Vault registration lock directory escapes the vault")
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    shared_lock = lock_dir / "registration.lock"
+    descriptor = acquire_lock(shared_lock, "Another environment is updating this vault's project index")
+    try:
+        os.close(descriptor)
+        return update_local_locked(args, config, vault)
+    finally:
+        shared_lock.unlink(missing_ok=True)
+
+
+def update_local_locked(args: Any, config: dict[str, Any], vault: Path) -> int:
     entries = local_registry(config)
     config["local_projects"] = entries
     writes: dict[Path, str] = {}
@@ -252,3 +294,73 @@ def update_local(args: Any) -> int:
         result["context"] = build_context(scope, config, vault) if scope.eligible else ""
     print(json.dumps(result, ensure_ascii=True, indent=2))
     return 0
+
+
+def command_register_github(args: Any) -> int:
+    """Register one eligible GitHub home and its index link under the shared vault lock."""
+    config = load_config()
+    vault_text = str(config.get("vault") or "")
+    if not config.get("enabled") or not vault_text:
+        raise ValueError("Memory is disabled or not configured")
+    vault = Path(vault_text).resolve()
+    root = args.cwd.resolve(strict=True)
+    if not root.is_dir() or path_is_within(root, vault) or path_is_within(vault, root):
+        raise ValueError("Select an existing project outside the memory vault")
+    repository, _ = repository_identity(root)
+    if not repository or not repository_allowed(repository, config, indexed=False):
+        raise ValueError("This workspace is not an eligible GitHub repository")
+    if local_for_workspace(root, config) is not None:
+        raise ValueError("This workspace already has an explicit local project identity")
+    owner_identity = repository.casefold()
+    review_payload_for_token(args.review_token, owner_identity, vault)
+    project_dir = vault_path(vault, config, "projects_dir")
+    index_path = vault_path(vault, config, "project_index")
+    if not index_path.is_file():
+        raise ValueError("Configured project index is missing")
+    lock_dir = vault / ".codex-obsidian-memory"
+    if not path_is_within(lock_dir, vault):
+        raise ValueError("Vault registration lock directory escapes the vault")
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    lock = lock_dir / "registration.lock"
+    descriptor = acquire_lock(lock, "Another environment is updating this vault's project index")
+    try:
+        os.close(descriptor)
+        home = find_project_page(vault, config, repository)
+        changed = []
+        writes: dict[Path, str] = {}
+        name = repository.split("/", 1)[1]
+        if home is None:
+            owner = repository.split("/", 1)[0]
+            folder = project_dir / name
+            if folder.exists():
+                folder = project_dir / f"{owner}-{name}"
+            if folder.exists():
+                folder = project_dir / f"{owner}-{name}-{uuid.uuid4().hex[:8]}"
+            home = folder / f"{name}.md"
+            index_name = index_path.relative_to(vault).with_suffix("").as_posix()
+            headings = (["项目目标与约束", "稳定背景", "开发分支", "仓库级关键决策", "开放问题"]
+                        if config.get("locale") == "zh-CN" else
+                        ["Goal and constraints", "Stable context", "Development branches",
+                         "Repository-level decisions", "Open questions"])
+            body = (f"---\ntype: project\nstatus: tracked\nupdated: {date.today().isoformat()}\n"
+                    f"github_repo: {repository}\nsource_kind: owned\n---\n\n# {name}\n\n"
+                    f"← [[{index_name}]]\n\n" + "\n\n".join(f"## {heading}" for heading in headings) + "\n")
+            writes[home] = body
+            changed.append(home.relative_to(vault).as_posix())
+        old_index = index_path.read_text(encoding="utf-8")
+        link = home.relative_to(vault).with_suffix("").as_posix()
+        existing_links = re.findall(r"\[\[([^|\]#]+)", re.sub(r"```.*?```", "", old_index, flags=re.DOTALL))
+        if link not in existing_links:
+            writes[index_path] = old_index.rstrip() + f"\n\n- [[{link}|{name}]]\n"
+            changed.append(index_path.relative_to(vault).as_posix())
+        commit_notes_only(writes)
+        if index_path in writes:
+            record_registered_index(args.review_token, owner_identity, vault, index_path)
+        from hook import build_context, resolve_scope
+        scope = resolve_scope({"cwd": str(root)}, config, vault)
+        result = {"repository": repository, "project_home": home.relative_to(vault).as_posix(),
+                  "changed_notes": changed, "context": build_context(scope, config, vault)}
+        print(json.dumps(result, ensure_ascii=True, indent=2))
+        return 0
+    finally:
+        lock.unlink(missing_ok=True)

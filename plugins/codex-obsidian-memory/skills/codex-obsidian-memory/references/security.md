@@ -11,6 +11,7 @@
 - Start hooks redact common token and private-key patterns before injection.
 - The Stop hook requests a durable-memory review but never stores credentials.
 - Turn snapshots contain only relative Markdown paths and SHA-256 hashes, never note bodies. Changed notes require a visible final writeback disclosure before the Hook accepts completion.
+- For a project task, the snapshot and Stop review cover that project's folder. Other projects' note changes are omitted. Before editing global memory or a shared lesson, use the current turn's `claim-shared` command; a different active conversation cannot claim that same shared file. The claim's initial digest is included in this turn's review and its lock is released only after an accepted review. Vault maintenance tasks intentionally audit the whole vault. Concurrent direct edits of the same project note remain a conflict risk and need coordination; file hashes alone cannot identify which writer contributed each line.
 - Registration also stores a short pending-review list of changed note paths, enforcing their disclosure at the current task's end even before a prompt-start snapshot exists. No note bodies are stored in that receipt.
 - Plugin hooks require explicit review in `/hooks`; changed definitions require trust again.
 - Setup backs up `config.toml` before a narrow writable-root edit.

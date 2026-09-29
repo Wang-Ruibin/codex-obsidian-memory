@@ -11,7 +11,7 @@ import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from local_projects import command_local, local_registry
+from local_projects import command_local, command_register_github, local_registry
 
 from memory_core import (
     DEFAULT_PATHS,
@@ -22,6 +22,7 @@ from memory_core import (
     load_config,
     normalized_repository,
     save_config,
+    claim_shared_file,
     validated_paths,
     vault_path,
 )
@@ -293,6 +294,24 @@ def command_retrieval(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_claim_shared(args: argparse.Namespace) -> int:
+    from hook import resolve_scope
+
+    config = load_config()
+    if not config.get("enabled") or not config.get("vault"):
+        raise ValueError("Memory is disabled or not configured")
+    vault = Path(config["vault"]).resolve()
+    scope = resolve_scope({"cwd": str(args.cwd.resolve())}, config, vault)
+    owner = scope.project_id or scope.repository.casefold()
+    if not scope.eligible or scope.kind == "vault" or not owner:
+        raise ValueError("Shared claims require an eligible current project conversation")
+    relative = claim_shared_file(args.review_token, owner, args.path, vault, config)
+    print(json.dumps({"claimed": relative, "owner": owner,
+                      "next": "Edit only this claimed shared note, then disclose it in this turn's writeback review."},
+                     ensure_ascii=True))
+    return 0
+
+
 def command_uninstall(_: argparse.Namespace) -> int:
     if not config_path().is_file():
         print("configured=false\nvault_untouched=true")
@@ -354,6 +373,10 @@ def build_parser() -> argparse.ArgumentParser:
     register.add_argument("--name", help="Human-readable project name.")
     register.add_argument("--project-id", help="Attach an existing local project from this vault in another environment.")
     register.set_defaults(handler=command_local)
+    github = subparsers.add_parser("register-github", help="Register one eligible GitHub repository under the vault's shared project-index lock.")
+    github.add_argument("--cwd", type=Path, default=Path.cwd())
+    github.add_argument("--review-token", required=True, help="Token injected by this turn's UserPromptSubmit Hook.")
+    github.set_defaults(handler=command_register_github)
     for operation in ("local-disable", "local-enable", "local-move"):
         command = subparsers.add_parser(operation, help="Manage an explicitly registered local project; notes are retained.")
         command.add_argument("project_id")
@@ -365,6 +388,11 @@ def build_parser() -> argparse.ArgumentParser:
     context = subparsers.add_parser("context", help="Load eligible workspace memory into this conversation immediately.")
     context.add_argument("--cwd", type=Path, default=Path.cwd())
     context.set_defaults(handler=command_retrieval)
+    claim = subparsers.add_parser("claim-shared", help="Reserve one shared note for this project's current turn before editing.")
+    claim.add_argument("path", help="Exact vault-relative global-memory or shared-lesson Markdown path.")
+    claim.add_argument("--review-token", required=True, help="Token injected by this turn's UserPromptSubmit Hook.")
+    claim.add_argument("--cwd", type=Path, default=Path.cwd())
+    claim.set_defaults(handler=command_claim_shared)
     search = subparsers.add_parser("search", help="Find reusable lessons, falling back to eligible project notes.")
     search.add_argument("query", help="Short space-separated problem, technology and environment keywords.")
     search.add_argument("--cwd", type=Path, default=Path.cwd(), help="Task workspace, not the plugin directory.")
