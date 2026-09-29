@@ -145,6 +145,11 @@ switch ($Action) {
     'python-path' { Write-Output $selected; exit 0 }
     'hook' { $result = Invoke-Program $selected (@('-B', (Join-Path $PSScriptRoot 'hook.py')) + $Arguments) ([Console]::In.ReadToEnd()) }
     'routine' { $result = Invoke-Program $selected (@('-B', (Join-Path $PSScriptRoot 'routine_runner.py')) + $Arguments) }
+    'manage' {
+        $manager = Join-Path $PSScriptRoot 'manage.py'
+        if (-not (Test-Path -LiteralPath $manager)) { throw 'The native memory manager is unavailable in this plugin installation.' }
+        $result = Invoke-Program $selected (@('-B', $manager) + $Arguments)
+    }
     default { $result = Invoke-Program $selected (@('-B', (Join-Path $PSScriptRoot 'memoryctl.py'), $Action) + $Arguments) }
 }
 [Console]::Out.Write($result.Out)

@@ -22,6 +22,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.
 
 启动器接受所有记忆 CLI 命令。`hook` 处理生命周期 JSON 协议，`routine` 运行周期任务，`python-path` 输出选定解释器路径供调度器安装使用。嵌入这些入口时保留标准输入、参数、标准输出和退出码。
 
+Windows 原生兼容集成还可用 `-Action manage` 通过已准备的解释器调用其管理器。未安装原生管理器时会报告错误；普通 marketplace 插件不含此管理器。
+
 ## 选择与下载
 
 准备时先检查缓存的解释器，再查找已有 Python 3.11+。没有合适版本时，从官方 `astral-sh/uv` GitHub Release 下载固定版本的 uv 启动工具，按 `assets/runtime/uv-assets.txt` 中记录的 SHA-256 校验，再通过 uv 准备 Astral 分发的私有 Python 3.12。不安装 pip 包。启动工具和下载／解压暂存目录通过 finally/trap 清理；仅保留选定的运行环境和解释器路径记录。

@@ -22,6 +22,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.
 
 The launchers accept all memory CLI commands. `hook` handles the lifecycle JSON protocol, `routine` invokes the routine runner, and `python-path` prints the resolved interpreter for scheduler installation. Preserve stdin, arguments, stdout and exit codes when embedding these entry points.
 
+The Windows-native compatibility integration can also use `-Action manage` to call its installed manager through the prepared interpreter. This action reports an error when no native manager is present; ordinary marketplace plugins do not include one.
+
 ## Selection and downloads
 
 Preparation first checks its cached interpreter, then existing Python 3.11+ installations. Without one, it downloads a pinned uv bootstrap archive from the official `astral-sh/uv` GitHub release, checks the SHA-256 recorded in `assets/runtime/uv-assets.txt`, and uses uv to prepare private Python 3.12 from Astral's Python distributions. No pip packages are installed. The bootstrap tool and download/extraction staging directory are deleted in a finally/trap cleanup; only the selected runtime and interpreter-path marker remain.
