@@ -253,6 +253,21 @@ class ConcurrentReviewTests(unittest.TestCase):
         self.assertFalse(list((self.vault / "20-projects/new-failed").glob("*.md")))
         self.assertFalse((self.vault / ".codex-obsidian-memory/registration.lock").exists())
 
+    def test_registration_releases_index_lock_before_loading_context(self):
+        work = self.root / "slow-context"
+        subprocess.run(["git", "init", "-q", str(work)], check=True, capture_output=True)
+        subprocess.run(["git", "-C", str(work), "remote", "add", "origin",
+                        "git@github.com:Example/slow-context.git"], check=True, capture_output=True)
+        event = {"session_id": "slow-context", "turn_id": "register", "cwd": str(work)}
+        lock = self.vault / ".codex-obsidian-memory/registration.lock"
+        with patch.dict(os.environ, {"CODEX_OBSIDIAN_MEMORY_CONFIG": str(self.config_path)}):
+            save_review_snapshot(event, self.vault, owner="example/slow-context")
+            with (patch.object(hook, "build_context", side_effect=lambda *_: self.assertFalse(lock.exists()) or "ready"),
+                  patch.object(sys, "stdout", new_callable=StringIO) as output):
+                self.assertEqual(local_projects.command_register_github(
+                    Namespace(cwd=work, review_token=review_snapshot_path(event).stem)), 0)
+        self.assertEqual(json.loads(output.getvalue())["context"], "ready")
+
 
 if __name__ == "__main__":
     unittest.main()

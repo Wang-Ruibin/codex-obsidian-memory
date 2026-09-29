@@ -201,7 +201,8 @@ def update_local(args: Any) -> int:
         raise ValueError("Vault registration lock directory escapes the vault")
     lock_dir.mkdir(parents=True, exist_ok=True)
     shared_lock = lock_dir / "registration.lock"
-    descriptor = acquire_lock(shared_lock, "Another environment is updating this vault's project index")
+    descriptor = acquire_lock(shared_lock, "Another environment is updating this vault's project index",
+                              wait_seconds=30)
     try:
         os.close(descriptor)
         return update_local_locked(args, config, vault)
@@ -322,7 +323,8 @@ def command_register_github(args: Any) -> int:
         raise ValueError("Vault registration lock directory escapes the vault")
     lock_dir.mkdir(parents=True, exist_ok=True)
     lock = lock_dir / "registration.lock"
-    descriptor = acquire_lock(lock, "Another environment is updating this vault's project index")
+    descriptor = acquire_lock(lock, "Another environment is updating this vault's project index",
+                              wait_seconds=30)
     try:
         os.close(descriptor)
         home = find_project_page(vault, config, repository)
@@ -356,11 +358,12 @@ def command_register_github(args: Any) -> int:
         commit_notes_only(writes)
         if index_path in writes:
             record_registered_index(args.review_token, owner_identity, vault, index_path)
-        from hook import build_context, resolve_scope
-        scope = resolve_scope({"cwd": str(root)}, config, vault)
-        result = {"repository": repository, "project_home": home.relative_to(vault).as_posix(),
-                  "changed_notes": changed, "context": build_context(scope, config, vault)}
-        print(json.dumps(result, ensure_ascii=True, indent=2))
-        return 0
     finally:
         lock.unlink(missing_ok=True)
+    # Context loading may be slow on Windows; it does not need the index lock.
+    from hook import build_context, resolve_scope
+    scope = resolve_scope({"cwd": str(root)}, config, vault)
+    result = {"repository": repository, "project_home": home.relative_to(vault).as_posix(),
+              "changed_notes": changed, "context": build_context(scope, config, vault)}
+    print(json.dumps(result, ensure_ascii=True, indent=2))
+    return 0
