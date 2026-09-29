@@ -188,8 +188,10 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
         "Before substantial implementation, after a failed approach, or before changing strategy, "
         "search reusable memory using short problem, technology and environment keywords. "
         "Skip trivial tasks. Retrieval is a reference workflow, not current-branch context.\n"
-        f"CLI script: {Path(__file__).with_name('memoryctl.py')}\n"
-        'Run with the available Python interpreter: search "keyword1 keyword2" --cwd <workspace>. '
+        f"CLI script (source fallback): {Path(__file__).with_name('memoryctl.py')}\n"
+        f"Preferred launchers: sh \"{Path(__file__).with_name('memoryctl.sh')}\" <command>; "
+        f"Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"{Path(__file__).with_name('memoryctl.ps1')}\" -Action <command>.\n"
+        'Use search "keyword1 keyword2" --cwd <workspace>. '
         "Use the workspace above, not the plugin directory. Auto search tries verified shared lessons "
         "first, then eligible project notes when none match. If shared hits are unsuitable, retry with "
         "--scope projects; refine keywords when needed. Use read <returned-path> --cwd <workspace> "

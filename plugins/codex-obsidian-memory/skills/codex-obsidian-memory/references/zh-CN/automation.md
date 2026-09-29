@@ -34,7 +34,7 @@ powershell -ExecutionPolicy Bypass -File "<plugin-root>\scripts\install-windows-
 bash "/absolute/path/to/plugin/scripts/install-linux-systemd.sh"
 ```
 
-安装器不需要 `sudo`。它会创建持久的用户级 timer，因此错过的检查可以在你再次登录后补跑。安装时还会固定 Python 和 Codex 的位置，不依赖以后启动任务时的 shell 环境。
+安装器不需要 `sudo`。它会创建持久的用户级 timer，因此错过的检查可以在你再次登录后补跑。缺少运行环境时会自动准备，再固定解释器和 Codex 的位置，不依赖以后启动任务时的 shell 环境。
 
 ```bash
 bash "/absolute/path/to/plugin/scripts/install-linux-systemd.sh" --uninstall
@@ -49,4 +49,4 @@ bash "/absolute/path/to/plugin/scripts/install-linux-systemd.sh" --uninstall
 15 9 * * * /absolute/path/to/python3 /absolute/path/to/plugin/scripts/routine_runner.py monthly --codex /absolute/path/to/codex
 ```
 
-机器需要可用的非交互 Codex 登录和已信任 Hook。调度器定义中必须为 Python、Codex 和 runner 使用绝对路径。设置后可以先用 `--dry-run` 检查一次，或让 Codex 告诉你下一次计划运行时间。
+机器需要可用的非交互 Codex 登录和已信任 Hook。调度器定义中必须为选定解释器、Codex 和 runner 使用绝对路径；Agent 可在自动准备后通过 `sh <plugin-root>/scripts/memoryctl.sh python-path` 获取解释器，用户无需安装 Python。设置后可以先用 `--dry-run` 检查一次，或让 Codex 告诉你下一次计划运行时间。

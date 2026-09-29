@@ -8,7 +8,6 @@
 
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
 [English](README.md) · **简体中文** · [开始使用](#从安装到第一段记忆) · [使用文档](#使用文档) · [安全策略](docs/zh-CN/SECURITY.md)
 
@@ -36,7 +35,7 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 你需要：
 
 - Codex CLI 或 ChatGPT 桌面端中的 Codex。同一台机器上的 VS Code 扩展共享本地 Codex 配置；先通过 Codex CLI 或桌面端安装并信任插件，之后即可在扩展中使用。扩展本身不提供插件浏览器。
-- Python 3.11+；macOS/Linux 使用 `python3`，Windows 使用 `py.exe`。
+- 首次设置时若缺少合适的运行环境，需要联网。Codex 会自动准备环境，无需你手动安装 Python、pip 或配置 PATH。
 - 电脑上有一个项目文件夹。GitHub 项目可以按仓库识别；本地文件夹需要明确要求启用一次。本地项目不要求 Git 或 GitHub 账号。
 - 推荐使用 Obsidian 浏览图谱；运行时只处理普通 Markdown。
 
@@ -48,8 +47,9 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 
 ```text
 从 https://github.com/Wang-Ruibin/codex-obsidian-memory 安装 Codex Obsidian Memory
-插件，使用 Codex 的 plugin marketplace 命令完成。检查环境，完成安装，并验证插件
-已安装。不要改动任何无关配置。完成后告诉我是否需要新开一个会话。
+插件，使用 Codex 的 plugin marketplace 命令完成。自动检查并准备插件运行环境：
+优先复用合适的 Python，没有时准备插件专用环境，不修改系统 PATH。
+完成安装并验证插件与运行环境可用。不要改动无关配置，告诉我是否需要新开会话。
 ```
 
 Codex 会执行等效于：
@@ -61,7 +61,7 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 
 更喜欢自己动手？在终端输入这两条命令效果相同。无论哪种方式，之后都新开一个 Codex 会话。
 
-完成标志：Codex 确认插件已安装，新对话能识别 `$codex-obsidian-memory`。如果提示缺少 Python 或不认识安装命令，把完整提示发给 Codex，让它先检查环境，不要跳到下一步。
+完成标志：Codex 确认插件和运行环境均已准备好，新对话能识别 `$codex-obsidian-memory`。如果自动准备失败，把完整提示发给 Codex，让它诊断下载或平台问题，无需你自行安装依赖。运行环境只在设置阶段准备，日常记忆 Hook 不会偷偷联网下载。
 
 ### 2. 让 Codex 创建知识库
 

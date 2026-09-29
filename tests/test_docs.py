@@ -40,7 +40,7 @@ class DocumentationTests(unittest.TestCase):
         for english, chinese in pairs:
             with self.subTest(document=str(english.relative_to(ROOT))):
                 self.assert_document_pair(english, chinese)
-        for name in ("automation.md", "migration.md", "security.md", "structure.md", "reuse.md", "local-projects.md"):
+        for name in ("automation.md", "migration.md", "security.md", "structure.md", "reuse.md", "local-projects.md", "runtime.md"):
             self.assert_document_pair(
                 SKILL / "references" / name,
                 SKILL / "references" / "zh-CN" / name,
@@ -115,7 +115,17 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.6.0")
+        self.assertEqual(manifest["version"], "0.7.0")
+
+    def test_hooks_use_platform_runtime_launchers(self) -> None:
+        plugin = json.loads((PLUGIN / "hooks/hooks.json").read_text(encoding="utf-8"))
+        for groups in plugin["hooks"].values():
+            for group in groups:
+                for entry in group["hooks"]:
+                    self.assertIn("memoryctl.sh", entry["command"])
+                    self.assertIn("memoryctl.ps1", entry["commandWindows"])
+                    self.assertNotIn("python3 ", entry["command"])
+                    self.assertNotIn("py.exe ", entry["commandWindows"])
 
     def test_agents_is_single_operational_source(self) -> None:
         self.assertTrue((ROOT / "AGENTS.md").is_file())

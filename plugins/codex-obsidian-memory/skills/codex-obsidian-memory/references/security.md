@@ -3,6 +3,7 @@
 [简体中文](zh-CN/security.md)
 
 - Memory stays in the user-selected local vault.
+- Runtime preparation may download verified bootstrap/runtime assets during explicit setup; Hooks never download or send notes. See [runtime.md](runtime.md). The installer does not modify system Python, PATH or shell profiles.
 - Hooks use read-only Git commands to identify `origin` and the current branch.
 - Resolved note paths outside the vault are rejected.
 - Repository eligibility comes from configured owners, inclusions and exclusions.

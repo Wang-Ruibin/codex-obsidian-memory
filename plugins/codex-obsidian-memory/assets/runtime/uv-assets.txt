@@ -1,0 +1,7 @@
+version 0.12.20
+uv-aarch64-apple-darwin.tar.gz 848fdeb602ff1a1baacd4f6c8b7bdc6cf1ad026a6d9cf59475fda17c179743ca
+uv-aarch64-pc-windows-msvc.zip b6bd9218855591742ffd3b00fcf2044b4d2fb6446b6a3545e0dfee447e950388
+uv-aarch64-unknown-linux-gnu.tar.gz 8a7aad7bc76a2fae5151566ff3e43eacce0b2a113d5e4de3e4afe3e58fa2441e
+uv-x86_64-apple-darwin.tar.gz ac54283d211fd77cdc152b67606dbaf6406ff4ab03f3af4ae99468fa8e887141
+uv-x86_64-pc-windows-msvc.zip 95f9bc30fbb3574d276e28ac4a6de932d25153645853d13da8c21eec3bc88d06
+uv-x86_64-unknown-linux-gnu.tar.gz 6590717592ace991ff83a63fef799e3ad9d33ecc8f96c5d6bdd732496e79337f

@@ -8,7 +8,6 @@ Keep project background, confirmed decisions and next steps in local notes for C
 
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
 
 **English** · [简体中文](README.zh-CN.md) · [Get started](#from-installation-to-first-memory) · [Documentation](#documentation) · [Security](SECURITY.md)
 
@@ -36,7 +35,7 @@ This plugin adds memory to Codex, so you still work in Codex. Obsidian lets you 
 You need:
 
 - Codex CLI or Codex in the ChatGPT desktop app. On the same machine, the VS Code extension shares your local Codex settings and can use the plugin after you install and trust it through Codex CLI or the desktop app. The extension itself does not provide a plugin browser.
-- Python 3.11+ (`python3` on macOS/Linux, `py.exe` on Windows).
+- Internet access for first-time setup if a compatible runtime is missing. Codex prepares the runtime automatically; you do not need to install Python, pip or configure PATH yourself.
 - A project folder on your computer. GitHub projects can be matched by their repository; local folders need a one-time explicit request to enable memory. Git and a GitHub account are optional for local projects.
 - Obsidian is recommended for graph browsing; the runtime uses ordinary Markdown.
 
@@ -49,7 +48,9 @@ Send this to Codex:
 ```text
 Install the Codex Obsidian Memory plugin from
 https://github.com/Wang-Ruibin/codex-obsidian-memory using the Codex plugin
-marketplace commands. Check the environment, finish the installation, and verify
+marketplace commands. Check and automatically prepare the plugin runtime: reuse a
+compatible Python when available, otherwise prepare a private runtime without changing
+my system PATH. Finish the installation and verify
 that the plugin is installed. Do not change any unrelated configuration. Tell me
 whether I must start a new session when done.
 ```
@@ -63,7 +64,7 @@ codex plugin add codex-obsidian-memory@codex-obsidian-memory
 
 Prefer the terminal? Typing these two commands yourself works just as well. Either way, start a new Codex conversation afterwards.
 
-You are done when Codex confirms installation and a new conversation recognizes `$codex-obsidian-memory`. If Python is missing or the installation command is not recognized, give Codex the full message and ask it to check the environment before moving on.
+You are done when Codex confirms the plugin and its runtime are ready and a new conversation recognizes `$codex-obsidian-memory`. If automatic preparation fails, give Codex the full message so it can diagnose the download or platform issue; you do not need to install dependencies by hand. Runtime preparation happens during setup, never as a hidden download during ordinary memory hooks.
 
 ### 2. Ask Codex to create your vault
 

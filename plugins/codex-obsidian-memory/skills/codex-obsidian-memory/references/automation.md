@@ -34,7 +34,7 @@ Run the uninstall before removing plugin state or the package.
 bash "/absolute/path/to/plugin/scripts/install-linux-systemd.sh"
 ```
 
-The installer requires no `sudo`. It creates persistent user-level timers, so a missed check can run after you sign in again. It also fixes the Python and Codex locations at setup time instead of depending on a later shell environment.
+The installer requires no `sudo`. It creates persistent user-level timers, so a missed check can run after you sign in again. It automatically prepares a plugin runtime if needed and fixes its interpreter and Codex locations at setup time instead of depending on a later shell environment.
 
 ```bash
 bash "/absolute/path/to/plugin/scripts/install-linux-systemd.sh" --uninstall
@@ -49,4 +49,4 @@ If `systemctl --user` is unavailable, use another user-level scheduler.
 15 9 * * * /absolute/path/to/python3 /absolute/path/to/plugin/scripts/routine_runner.py monthly --codex /absolute/path/to/codex
 ```
 
-The machine needs a working non-interactive Codex login and trusted hooks. Use absolute paths for Python, Codex and the runner in scheduler definitions. After setup, run each routine once with `--dry-run` or ask Codex to verify the next scheduled time.
+The machine needs a working non-interactive Codex login and trusted hooks. Use absolute paths for the selected interpreter, Codex and the runner in scheduler definitions. The agent can obtain the interpreter with `sh <plugin-root>/scripts/memoryctl.sh python-path` after automatic preparation; the user does not need to install Python. After setup, run each routine once with `--dry-run` or ask Codex to verify the next scheduled time.

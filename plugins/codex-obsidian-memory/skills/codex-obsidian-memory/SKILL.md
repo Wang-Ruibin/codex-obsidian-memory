@@ -11,19 +11,20 @@ Manage the local-first memory integration packaged with this plugin. Lifecycle h
 
 ## Choose the operation
 
-- First-time setup: run `python ../../scripts/memoryctl.py init --vault <absolute-path> --github-owner <owner> [--locale en|zh-CN]` from this Skill directory.
+- Before setup, automatically run `sh ../../scripts/memoryctl.sh prepare-runtime` on macOS/Linux, or `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.ps1 -Action prepare-runtime` on Windows. Reuse a compatible Python or prepare the plugin's private runtime. Do not ask the user to install Python/pip or configure PATH. See [runtime.md](references/runtime.md) for supported platforms and troubleshooting.
+- Run commands through `sh ../../scripts/memoryctl.sh <command> <args>` or Windows `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.ps1 -Action <command> <args>`. First-time setup uses `init --vault <absolute-path> --github-owner <owner> [--locale en|zh-CN]`.
 - Without GitHub: use `init --vault <absolute-path> --local-only [--locale en|zh-CN]`. Existing installations do not need reinitialization to add local projects.
 - Explicitly enable the current local project: read [local-projects.md](references/local-projects.md), then use `local-register --path <confirmed-root>`. Immediately consume the returned memory context in this task and perform the current task's writeback review. Do not defer activation to a new conversation. Mentioning memory without asking to enable it does not authorize registration.
 - Local controls: use `local-list`, `local-disable <id>`, `local-enable <id>` and `local-move <id> --path <new-root>`; preserve the generated ID and notes. `context --cwd <workspace>` reloads memory in the same conversation.
-- Current state: run `python ../../scripts/memoryctl.py status`.
-- Structural check: run `python ../../scripts/memoryctl.py validate`.
+- Current state: run the launcher with `status`.
+- Structural check: run the launcher with `validate`.
 - Reversible control: use `enable` or `disable`.
 - Active integration removal: uninstall optional automation first, then run `uninstall`. Never remove the vault. Explain that routine history, logs or interrupted-turn snapshots may remain under `$CODEX_HOME/obsidian-memory`.
 - Repository scope: use `exclude OWNER/REPO` or `include OWNER/REPO`.
 - Recurring briefs or audits: read [automation.md](references/automation.md) before installing an OS scheduler.
 - Existing vault adoption: read [migration.md](references/migration.md) before changing files.
 
-On Windows, prefer `py.exe` when `python` is unavailable.
+Source-level Python examples in references are developer equivalents. For users, use the platform launcher above, including for local registration, search, read and context. Hooks use the same prepared runtime and never download it. After a Hook definition update, review its new launcher command through the host's normal Hook trust flow; do not copy or fabricate trust hashes.
 
 ## Cross-project experience reuse
 

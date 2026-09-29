@@ -29,19 +29,17 @@ if ($Uninstall) {
     exit 0
 }
 
-$python = Get-Command py.exe -ErrorAction SilentlyContinue
-if ($null -eq $python) {
-    $python = Get-Command python3 -ErrorAction SilentlyContinue
-}
-if ($null -eq $python) {
-    throw 'Python 3.11 or newer was not found.'
-}
+$pythonPath = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'memoryctl.ps1') -Action prepare-runtime
+if ($LASTEXITCODE -ne 0 -or -not $pythonPath) { throw 'Plugin runtime preparation failed.' }
+$pythonPath = ([string]$pythonPath).Trim()
 
 New-Item -ItemType Directory -Path $automationRoot -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $automationRoot 'prompts') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'memory_core.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'routine_runner.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'validate_vault.py') -Destination $automationRoot -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'reuse_memory.py') -Destination $automationRoot -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'local_projects.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'run-hidden.vbs') -Destination $automationRoot -Force
 $pluginRoot = Split-Path -Parent $PSScriptRoot
 Copy-Item -Path (Join-Path $pluginRoot 'assets\prompts\*') -Destination (Join-Path $automationRoot 'prompts') -Recurse -Force
@@ -53,8 +51,8 @@ if (-not (Test-Path -LiteralPath $wscript)) {
     throw 'wscript.exe was not found.'
 }
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -Hidden
-$weeklyArguments = '"{0}" "{1}" "{2}" weekly' -f $hiddenRunner, $python.Source, $runner
-$monthlyArguments = '"{0}" "{1}" "{2}" monthly' -f $hiddenRunner, $python.Source, $runner
+$weeklyArguments = '"{0}" "{1}" "{2}" weekly' -f $hiddenRunner, $pythonPath, $runner
+$monthlyArguments = '"{0}" "{1}" "{2}" monthly' -f $hiddenRunner, $pythonPath, $runner
 $weeklyAction = New-ScheduledTaskAction -Execute $wscript -Argument $weeklyArguments -WorkingDirectory $automationRoot
 $monthlyAction = New-ScheduledTaskAction -Execute $wscript -Argument $monthlyArguments -WorkingDirectory $automationRoot
 $weeklyTrigger = New-ScheduledTaskTrigger -Daily -At '09:00'

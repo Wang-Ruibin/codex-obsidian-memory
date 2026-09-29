@@ -6,19 +6,20 @@
 
 ## 选择操作
 
-- 首次设置：在本 Skill 目录运行 `python ../../scripts/memoryctl.py init --vault <绝对路径> --github-owner <owner> [--locale en|zh-CN]`。
+- 设置前自动准备：macOS/Linux 执行 `sh ../../scripts/memoryctl.sh prepare-runtime`；Windows 执行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.ps1 -Action prepare-runtime`。复用合适的 Python 或准备插件私有环境，不要求用户手动安装 Python/pip 或配置 PATH。支持平台和排错见[运行环境参考](references/zh-CN/runtime.md)。
+- 命令统一通过 `sh ../../scripts/memoryctl.sh <command> <args>`，或 Windows 的 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.ps1 -Action <command> <args>` 执行。首次设置使用 `init --vault <absolute-path> --github-owner <owner> [--locale en|zh-CN]`。
 - 没有 GitHub：使用 `init --vault <absolute-path> --local-only [--locale en|zh-CN]`。已有安装无需重新初始化即可增加本地项目。
 - 明确启用当前本地项目：阅读[本地项目参考](references/zh-CN/local-projects.md)，然后执行 `local-register --path <confirmed-root>`。立即在本轮使用返回的记忆上下文，并执行当前任务的回写审查；不得延迟到新会话才生效。仅提及记忆而未要求启用，不构成登记授权。
 - 本地控制：使用 `local-list`、`local-disable <id>`、`local-enable <id>` 和 `local-move <id> --path <new-root>`，保留自动生成的 ID 和笔记。`context --cwd <workspace>` 可在同一会话重新加载记忆。
-- 当前状态：运行 `python ../../scripts/memoryctl.py status`。
-- 结构检查：运行 `python ../../scripts/memoryctl.py validate`。
+- 当前状态：通过启动入口运行 `status`。
+- 结构检查：通过启动入口运行 `validate`。
 - 可逆控制：使用 `enable` 或 `disable`。
 - 移除活动集成：先卸载可选自动化，再运行 `uninstall`；永远不要删除知识库。说明周期状态、日志或中断任务快照可能继续保留在 `$CODEX_HOME/obsidian-memory` 中。
 - 仓库范围：使用 `exclude OWNER/REPO` 或 `include OWNER/REPO`。
 - 周期简报或体检：安装操作系统调度器前阅读[自动化参考](references/zh-CN/automation.md)。
 - 接管现有知识库：修改文件前阅读[迁移参考](references/zh-CN/migration.md)。
 
-Windows 上没有 `python` 时优先使用 `py.exe`。
+参考资料里的 Python 源码命令是开发者等效入口；面向用户使用上述平台启动器，包括本地登记、search、read 和 context。Hook 使用同一已准备环境，绝不自行下载。Hook 定义更新后，通过宿主正常流程审阅并信任新的启动命令，不复制或伪造信任哈希。
 
 ## 跨项目经验复用
 

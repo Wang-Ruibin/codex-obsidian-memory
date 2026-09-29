@@ -265,8 +265,8 @@ def change_repository(repository: str, excluded: bool) -> int:
 
 
 def command_validate(_: argparse.Namespace) -> int:
-    script = Path(__file__).with_name("validate_vault.py")
-    return subprocess.run([sys.executable, str(script)], check=False).returncode
+    from validate_vault import main as validate_main
+    return validate_main()
 
 
 def command_retrieval(args: argparse.Namespace) -> int:

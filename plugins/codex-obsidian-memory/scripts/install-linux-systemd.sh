@@ -37,7 +37,7 @@ if [[ $# -ne 0 ]]; then
     exit 2
 fi
 
-for command_name in python3 codex systemctl; do
+for command_name in codex systemctl; do
     if ! command -v "${command_name}" >/dev/null 2>&1; then
         printf 'Required command was not found: %s\n' "${command_name}" >&2
         exit 1
@@ -48,12 +48,14 @@ if ! systemctl --user show-environment >/dev/null 2>&1; then
     exit 1
 fi
 
-python_path="$(command -v python3)"
+python_path="$(sh "${script_dir}/memoryctl.sh" prepare-runtime)"
 codex_path="$(command -v codex)"
 mkdir -p -- "${automation_root}/prompts" "${unit_dir}"
 install -m 0644 "${script_dir}/memory_core.py" "${automation_root}/memory_core.py"
 install -m 0644 "${script_dir}/routine_runner.py" "${automation_root}/routine_runner.py"
 install -m 0644 "${script_dir}/validate_vault.py" "${automation_root}/validate_vault.py"
+install -m 0644 "${script_dir}/reuse_memory.py" "${automation_root}/reuse_memory.py"
+install -m 0644 "${script_dir}/local_projects.py" "${automation_root}/local_projects.py"
 cp -R -- "${plugin_root}/assets/prompts/." "${automation_root}/prompts/"
 
 systemd_escape() {
