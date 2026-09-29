@@ -11,6 +11,7 @@ import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from local_projects import command_local, local_registry
 
 from memory_core import (
     DEFAULT_PATHS,
@@ -154,9 +155,11 @@ def command_init(args: argparse.Namespace) -> int:
     if vault.exists() and not vault.is_dir():
         raise ValueError(f"Vault path is not a directory: {vault}")
     vault.mkdir(parents=True, exist_ok=True)
-    owners = sorted({owner.strip() for owner in args.github_owner if owner.strip()}, key=str.casefold)
-    if not owners:
-        raise ValueError("At least one --github-owner is required.")
+    owners = sorted({owner.strip() for owner in (args.github_owner or []) if owner.strip()}, key=str.casefold)
+    if not owners and not args.local_only:
+        raise ValueError("Choose --local-only or provide at least one --github-owner.")
+    if args.local_only and (owners or args.exclude or args.scope_mode != "github-owner"):
+        raise ValueError("--local-only cannot be combined with GitHub scope options")
     exclusions = sorted(
         {normalized_repository(value) for value in (args.exclude or [])}, key=str.casefold
     )
@@ -174,18 +177,21 @@ def command_init(args: argparse.Namespace) -> int:
         if args.no_template
         else install_template(vault, args.force_template, args.locale)
     )
+    previous = load_config()
     config = {
         "version": 1,
         "enabled": True,
         "vault": str(vault),
         "locale": args.locale,
-        "scope_mode": args.scope_mode,
+        "scope_mode": "local-only" if args.local_only else args.scope_mode,
         "github_owners": owners,
         "included_repositories": [],
         "excluded_repositories": exclusions,
         "paths": paths,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "writable_root_added": False,
+        "local_projects": previous.get("local_projects", []) if previous.get("vault")
+            and Path(previous["vault"]).resolve() == vault else [],
     }
     save_config(config)
     writable = "Skipped by request."
@@ -216,6 +222,7 @@ def command_status(_: argparse.Namespace) -> int:
         "github_owners": config.get("github_owners", []),
         "included_repositories": config.get("included_repositories", []),
         "excluded_repositories": config.get("excluded_repositories", []),
+        "local_projects": local_registry(config),
         "writable_root": bool(vault and config_has_writable_root(vault)),
         "reuse_index": str(vault_path(vault, config, "reuse_index")) if vault else None,
         "reuse_index_exists": bool(vault and vault_path(vault, config, "reuse_index").is_file()),
@@ -274,9 +281,12 @@ def command_retrieval(args: argparse.Namespace) -> int:
         raise ValueError("Configured vault is unavailable; no notes were searched.")
     scope = resolve_scope({"cwd": str(args.cwd.resolve())}, config, vault)
     if not scope.eligible:
-        raise ValueError("Workspace is outside configured GitHub scope; no notes were searched.")
+        raise ValueError("Workspace is not an eligible GitHub or enabled local project; no notes were searched.")
     if args.command == "search":
         result = search(vault, config, args.query, args.scope, args.limit)
+    elif args.command == "context":
+        from hook import build_context
+        result = {"context": build_context(scope, config, vault)}
     else:
         result = read_reference(vault, config, args.path, args.start_line, args.line_count)
     print(json.dumps(result, ensure_ascii=True, indent=2))
@@ -314,7 +324,8 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     init = subparsers.add_parser("init", help="Create or adopt a vault and enable memory.")
     init.add_argument("--vault", type=Path, required=True)
-    init.add_argument("--github-owner", action="append", required=True)
+    init.add_argument("--github-owner", action="append")
+    init.add_argument("--local-only", action="store_true", help="Use explicitly registered local projects without a GitHub account.")
     init.add_argument("--locale", choices=("en", "zh-CN"), default="en")
     init.add_argument("--exclude", action="append")
     init.add_argument("--scope-mode", choices=("github-owner", "indexed-only"), default="github-owner")
@@ -338,6 +349,22 @@ def build_parser() -> argparse.ArgumentParser:
     include.add_argument("repository")
     include.set_defaults(handler=lambda args: change_repository(args.repository, False))
     subparsers.add_parser("validate", help="Validate vault structure.").set_defaults(handler=command_validate)
+    register = subparsers.add_parser("local-register", help="Explicitly enable a local project and load its memory now.")
+    register.add_argument("--path", type=Path, default=Path.cwd(), help="Confirmed project root directory.")
+    register.add_argument("--name", help="Human-readable project name.")
+    register.add_argument("--project-id", help="Attach an existing local project from this vault in another environment.")
+    register.set_defaults(handler=command_local)
+    for operation in ("local-disable", "local-enable", "local-move"):
+        command = subparsers.add_parser(operation, help="Manage an explicitly registered local project; notes are retained.")
+        command.add_argument("project_id")
+        if operation == "local-move":
+            command.add_argument("--path", type=Path, required=True)
+        command.set_defaults(handler=command_local)
+    subparsers.add_parser("local-list", help="List local project identities and path registrations.").set_defaults(
+        handler=lambda _: (print(json.dumps(local_registry(load_config()), ensure_ascii=True, indent=2)) or 0))
+    context = subparsers.add_parser("context", help="Load eligible workspace memory into this conversation immediately.")
+    context.add_argument("--cwd", type=Path, default=Path.cwd())
+    context.set_defaults(handler=command_retrieval)
     search = subparsers.add_parser("search", help="Find reusable lessons, falling back to eligible project notes.")
     search.add_argument("query", help="Short space-separated problem, technology and environment keywords.")
     search.add_argument("--cwd", type=Path, default=Path.cwd(), help="Task workspace, not the plugin directory.")

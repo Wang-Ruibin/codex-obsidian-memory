@@ -12,6 +12,7 @@ Before continuing, back up the vault or place it under version control. Codex sh
 
 ## What Codex should preserve
 
+- Local-only users can initialize with `--local-only` instead of `--github-owner`; explicitly register each project afterwards. Existing installations can add local projects without reinitialization. Registration returns context for use immediately in the current conversation. See [local-projects.md](local-projects.md).
 - Existing notes remain untouched. If the vault already uses the default layout, setup adds only missing template files.
 - A custom layout is mapped instead of replaced. All mapped paths stay inside the vault.
 - Each GitHub repository keeps one project folder and one project home. Branch-specific progress stays on its matching branch page.

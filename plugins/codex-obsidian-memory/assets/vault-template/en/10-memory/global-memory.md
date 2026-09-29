@@ -17,7 +17,7 @@ Keep only facts that apply across repositories.
 
 ## Cross-project decisions
 
-- One GitHub repository owns one project folder and one project home.
+- One GitHub repository or explicitly registered local project ID owns one project folder and one project home.
 - Branch-specific progress belongs on an exact `working_branch` page.
 
 ## Reusable failure lessons

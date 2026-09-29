@@ -206,6 +206,8 @@ def repository_allowed(repository: str, config: dict[str, Any], *, indexed: bool
     key = repository.casefold()
     if key in {str(value).casefold() for value in config.get("excluded_repositories", [])}:
         return False
+    if config.get("scope_mode") == "local-only":
+        return False
     if key in {str(value).casefold() for value in config.get("included_repositories", [])}:
         return True
     mode = config.get("scope_mode", "github-owner")
@@ -214,6 +216,17 @@ def repository_allowed(repository: str, config: dict[str, Any], *, indexed: bool
     return mode == "github-owner" and key.split("/", 1)[0] in {
         str(value).casefold() for value in config.get("github_owners", [])
     }
+
+
+def note_identity(text: str) -> str:
+    """A note has exactly one identity; never infer it from body text or filenames."""
+    local = frontmatter_value(text, "project_id")
+    repository = frontmatter_value(text, "github_repo")
+    if local:
+        return local if re.fullmatch(r"local:[0-9a-f]{32}", local) and not repository else ""
+    if re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+        return repository.casefold()
+    return ""
 
 
 def find_project_page(vault: Path, config: dict[str, Any], repository: str) -> Path | None:
@@ -229,7 +242,7 @@ def find_project_page(vault: Path, config: dict[str, Any], repository: str) -> P
             continue
         if frontmatter_value(note, "type").casefold() != "project":
             continue
-        if frontmatter_value(note, "github_repo").casefold() == repository.casefold():
+        if note_identity(note) == repository.casefold():
             return candidate
     return None
 

@@ -19,7 +19,7 @@ Keep project background, confirmed decisions and next steps in local notes for C
 Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load your global preferences, the exact project home, and the page for the branch you are on before work begins — and load them again after compaction and for subagents. When the task ends, Codex reviews whether anything durable emerged and writes it back for your review.
 
 - Memory stays in Markdown files you own. No vector database, no cloud memory service, no credentials in the vault.
-- Only the GitHub repositories you choose are eligible; ordinary folders stay silent.
+- Use selected GitHub repositories or explicitly enable a local project, including an ordinary folder without Git. Unregistered folders stay silent.
 - Branch pages are created when durable branch-specific progress exists, so parallel lines of work can stay separate without filling the vault with empty placeholders.
 - Only durable facts are kept — decisions, outcomes, reusable failures and next steps — never chat transcripts.
 - Whenever memory changes during a task, Codex is required to show a **Knowledge-base writeback review** with every changed file and a plain-language summary, so you can correct it before relying on the new memory.
@@ -31,13 +31,13 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 
 ## From installation to first memory
 
-This plugin adds memory to Codex, so you still work in Codex. Obsidian lets you view the notes; there is no chat button to find there. It is intended for GitHub code projects: ordinary folders and local-only projects do not load memory automatically, and it does not save your entire chat history.
+This plugin adds memory to Codex, so you still work in Codex. Obsidian lets you view the notes; there is no chat button to find there. You can use GitHub projects or explicitly enable local folders. It does not save your entire chat history.
 
 You need:
 
 - Codex CLI or Codex in the ChatGPT desktop app. On the same machine, the VS Code extension shares your local Codex settings and can use the plugin after you install and trust it through Codex CLI or the desktop app. The extension itself does not provide a plugin browser.
 - Python 3.11+ (`python3` on macOS/Linux, `py.exe` on Windows).
-- A project folder on your computer linked to GitHub (technically, a Git repository whose `origin` points to GitHub). A GitHub account, web address or downloaded ZIP alone is not enough; ask Codex to check if you are unsure.
+- A project folder on your computer. GitHub projects can be matched by their repository; local folders need a one-time explicit request to enable memory. Git and a GitHub account are optional for local projects.
 - Obsidian is recommended for graph browsing; the runtime uses ordinary Markdown.
 
 Copy text labeled “send to Codex” into **Codex's chat input**, just like a message, rather than into an Obsidian note or PowerShell. Wait for Codex to finish and confirm each step before continuing; installation and initialization usually happen once. If a message is unclear, ask it to explain “What do I need to do now?”
@@ -73,8 +73,9 @@ Start a new conversation and send this to Codex; you do not need to fill in a pa
 
 ```text
 Use $codex-obsidian-memory to help me create an English memory vault.
-Check for an existing setup first to avoid initializing it twice. Help me confirm
-the GitHub username or organization for this project, then ask where to store notes.
+Check for an existing setup first to avoid initializing it twice. Ask whether I want
+local-only memory or GitHub plus local projects, then ask where to store notes.
+Only ask for a GitHub username or organization if I choose GitHub.
 If I am unsure, explain and suggest a suitable location on this computer.
 Create it after confirmation without overwriting notes. Ask me before changing any
 global Codex configuration. Tell me the full vault path and which projects will use memory.
@@ -83,7 +84,7 @@ global Codex configuration. Tell me the full vault path and which projects will 
 Codex will help you confirm two things:
 
 - Where notes live: for example, `D:\notes\agent-memory` on Windows or `~/obsidian/agent-memory` on macOS/Linux, with Codex confirming the full path. This folder holds memory notes; open your own project folder for everyday work.
-- Your GitHub username or organization: for a project at `https://github.com/my-account/my-project`, the name is `my-account`. You can name multiple accounts and include or exclude individual repositories.
+- Which projects to manage: choose local-only if you do not use GitHub. Otherwise provide a GitHub username or organization, such as `my-account` for `https://github.com/my-account/my-project`; you can choose multiple accounts and include or exclude repositories. You can also explicitly enable local projects in this setup.
 
 The example creates an English vault. For a Simplified Chinese vault, ask for "a Simplified Chinese vault" instead — it uses the `--locale zh-CN` template.
 
@@ -105,7 +106,7 @@ raw check results. If the project is out of scope, explain why before changing a
 repository settings or uploading files.
 ```
 
-You are done when memory is enabled, the vault passes validation and this project is in scope. **Passing vault validation alone does not prove that this project will load memory automatically.** Ask Codex to explain if the folder is not a Git repository, is not linked to GitHub or is excluded.
+You are done when memory is enabled, the vault passes validation and this project is in scope. **Passing vault validation alone does not prove that this project will load memory automatically.** For a local folder, use the explicit request below. Ask Codex to explain any exclusion before proceeding.
 
 ### 4. Save a memory, then start a new conversation
 
@@ -130,6 +131,22 @@ not manually search the vault yet.
 If the new conversation accurately recalls the preference and identifies its source, you have completed your first “save → new conversation → read” exercise. If it does not, return to step 3 to troubleshoot.
 
 After that, ask for work as usual in Codex, such as “Help me start this project” or “Continue the previous task; first tell me where we left off.” Everyday tasks do not need `$codex-obsidian-memory` or repeated installation. Codex reviews what is worth keeping at the end of a task; no new note is normal when there is no new durable information. To correct a mistake, say “Change that project memory to…” and check the updated writeback review.
+
+## Local projects without GitHub
+
+After the plugin and hooks are ready, open your local project in Codex and send:
+
+```text
+Use $codex-obsidian-memory to enable long-term memory for this local project.
+I do not use GitHub. Confirm the project root from this workspace, then register it.
+Load its memory immediately and use it in this conversation, including this task's
+end-of-task review. Load it automatically in future conversations too.
+If no vault is configured yet, help me create a local-only vault first.
+```
+
+Codex registers the project, creates or reuses its memory page, and loads the context immediately in the current conversation. You do not need to restart to enable this project. The first reply lists the note changes for review; future conversations find the project automatically. Simply mentioning memory or asking about it does not register a folder.
+
+An ordinary folder works without Git. A local Git project can keep separate branch memories. Same-named folders remain separate projects. To pause, say “Stop automatic memory for this local project”; notes are retained. To resume, ask to enable it again. After moving a project, tell Codex to update its registered location and keep its existing memory. If you use both Windows and WSL, ask it to associate both environments with the same project memory. See the [local project reference](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/local-projects.md).
 
 ## Reuse experience across projects
 
@@ -173,7 +190,7 @@ Codex uses `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings i
 ## What you receive
 
 - A memory home with global preferences, a maintenance page and templates, in English or Simplified Chinese.
-- One folder per GitHub repository: a single project home plus branch pages created as durable branch-specific context appears.
+- One folder per GitHub or registered local project: a single project home plus branch pages when durable Git branch context exists.
 - Weekly-brief and monthly-audit pages, ready if you later enable the optional routines.
 - A visible writeback review whenever Codex changes a note — nothing enters long-term memory silently.
 
@@ -204,10 +221,11 @@ codex plugin remove codex-obsidian-memory@codex-obsidian-memory
 flowchart LR
     A[User prompt] --> B[Start hooks]
     C[Compaction or subagent] --> B
-    B --> D{GitHub origin in scope?}
+    B --> D{Eligible GitHub or enabled local project?}
     D -- no --> E[Stay silent]
     D -- yes --> F[Global memory]
-    F --> G[Exact repository home]
+    L[Explicit local registration in this conversation] --> F
+    F --> G[Exact project home]
     G --> H[Exact working_branch page]
     H --> I[Codex task]
     I --> J[Stop hook memory review]
@@ -217,12 +235,12 @@ flowchart LR
 ```text
 Memory home ── global memory / maintenance / template
      │
-     └── Project index ── repository home ── exact branch pages
+     └── Project index ── project home ── exact branch pages when present
 ```
 
 See the [structure reference](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/structure.md).
 
-Hooks decide what to load from exact repository identity, never from note content:
+Hooks use exact repository identity or a registered local root and project ID, never a match in note body text:
 
 | Workspace | Default behavior |
 |---|---|
@@ -230,7 +248,8 @@ Hooks decide what to load from exact repository identity, never from note conten
 | Configured owner, new repository | Load global memory, index and template; register only for durable context |
 | Explicitly included `OWNER/REPO` | Load outside automatic owner scope |
 | Explicitly excluded `OWNER/REPO` | Stay silent |
-| Local-only repo, another Git host or ordinary folder | Stay silent |
+| Explicitly enabled local project | Load immediately on registration and automatically afterwards; use exact Git branches when available |
+| Unregistered local-only repo, another Git host or ordinary folder | Stay silent |
 | The vault itself | Load maintenance context |
 
 Repository identity is read with non-mutating Git commands. SSH credentials, private keys, tokens and Git configuration secrets are never read into memory.
@@ -239,7 +258,7 @@ Repository identity is read with non-mutating Git commands. SSH credentials, pri
 
 - Memory stays local: no telemetry, no remote memory service, no credential collection.
 - Every note is resolved inside the configured vault, and common secret patterns are redacted before injection.
-- Hooks stay silent in ordinary folders, on other Git hosts and in excluded repositories.
+- Hooks stay silent in unregistered local folders and excluded repositories; local registration never overrides an explicit repository exclusion.
 - Branch names are matched exactly, including case. Keep separate note filenames such as `release-upper.md` and `release-lower.md` for `Release` and `release` on filesystems that ignore filename case.
 - No command deletes or moves your vault. Uninstall stops the integration and removes the access entry added during setup; diagnostic history is kept unless you ask Codex to remove it too.
 - Scheduled audits may recommend archival, but never delete, move or archive notes on their own.
@@ -250,7 +269,7 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 
 | Situation | What to do |
 |---|---|
-| Hook is silent | Ask Codex to run `status`, verify the GitHub `origin`, and check exclusions. |
+| Hook is silent | Ask Codex to run `status`, verify the GitHub scope or local registration, and check exclusions. |
 | Hook is installed but skipped | Trust it in `/hooks`, then start a new conversation. |
 | Wrong branch context | Check `git branch --show-current` and the exact `working_branch` frontmatter. |
 | Branches differ only by letter case | Use distinct note filenames and preserve the exact branch name inside each note; ask Codex to check the mapping. |

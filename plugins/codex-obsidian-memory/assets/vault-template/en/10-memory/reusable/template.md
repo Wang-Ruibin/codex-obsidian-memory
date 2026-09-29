@@ -46,4 +46,6 @@ Use scalar frontmatter values. `source_note` is an exact vault-relative path to 
 
 ## Maintenance
 
+For a local project source, replace `source_repo` with `source_project_id` using the existing registered ID. Use exactly one source identity field. Leave `source_branch` empty for a plain folder's project home; keep the real exact branch for a local Git branch note. Disabled local sources are not retrieval candidates.
+
 Add a summary and link to the index; link the index from memory home. Set `verified_on` only after verification, not after an editorial edit. Keep conflicting conditions explicit and recheck them before use. Mark obsolete lessons `status: retired`, retain the file and mark its index entry; do not silently overwrite contradictory evidence or automatically move or delete notes.

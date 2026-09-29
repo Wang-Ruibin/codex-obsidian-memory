@@ -24,6 +24,8 @@ python ../../scripts/memoryctl.py read 20-projects/example/main.md --cwd /absolu
 
 ## 共享经验生命周期
 
+已启用的本地登记也参与复用。其笔记使用 `project_id`，衍生经验用 `source_project_id` 替换 `source_repo`，两种来源身份字段不得同时填写。同一配置允许的 GitHub 来源可被本地项目复用，合格 GitHub 项目也能复用本地经验；仅本地模式将候选限制为已启用的本地登记。详见[本地项目参考](local-projects.md)。
+
 全局记忆保存稳定偏好与协作规则。项目笔记保留项目事件和证据。共享主题页保存可迁移方法、限制和失败经验；简短索引便于人工浏览。Hook 提供路径和检索指引，不注入完整共享索引或全部经验正文。
 
 使用配置的 `reuse_template`；知识库尚无模板时，参考插件中对应语言的 `assets/vault-template/<locale>/10-memory/reusable/template.md`。主题页使用 `type: reusable-memory`、`status: verified`、`summary`、`keywords`、`source_repo`、`source_branch`、`source_note` 和 `verified_on`。字段值使用单行标量。`source_note` 是合格项目主页或其直接链接子页相对知识库的精确路径。`source_branch` 与来源分支区分大小写地匹配；仓库级笔记留空。`verified_on` 是真实、非未来的 `YYYY-MM-DD`，只有验证后才更新。

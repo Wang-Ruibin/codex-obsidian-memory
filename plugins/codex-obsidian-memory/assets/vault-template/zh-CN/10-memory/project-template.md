@@ -64,3 +64,7 @@ tags:
 ```
 
 文件名中替换非法字符，但 `working_branch` 必须保留完整 Git 分支名。
+
+## 明确登记的本地项目
+
+`local-register` 创建项目主页，生成 `project_id: local:<32 lowercase hex digits>` 并设置 `source_kind: local`。保留该 ID；普通文件夹不填写 `github_repo`、`default_branch` 和 `upstream_repo`。没有具名 Git 分支时，进度写在项目主页。本地 Git 分支页将上述分支模板中的 `github_repo` 替换为登记的 `project_id`，保留真实 `working_branch`；不得虚构 ID 或 `main` 分支。从已有项目主页链接子页。登记返回的上下文应在当前会话立即使用。

@@ -5,9 +5,10 @@
 ## 任务开始
 
 1. 读取 `00-memory-home.md` 和 `10-memory/global-memory.md`。
-2. 从 `20-projects/project-index.md` 精确匹配 GitHub `OWNER/REPO`。
+2. 从 `20-projects/project-index.md` 精确匹配 GitHub `OWNER/REPO` 或明确登记的本地 `project_id`，不得凭目录名或笔记正文推断身份。
 3. 读取项目主页、`working_branch` 与当前分支精确匹配的页面，以及已链接的非分支子页。
 4. 永远不要把其他分支页作为当前进度加载。
+   没有具名 Git 分支时，进度写在项目主页。明确登记本地项目后，立即在当前会话使用返回的记忆，不等待新会话。不得仅因提示词提到记忆就登记文件夹。
 5. 在实质实现前、遇到失败后或改变方案前，使用 Hook 提供的 `memoryctl.py search` 入口，按问题、技术和环境的简短关键词检索。简单任务可以跳过。先检索共享经验，无命中时回退到合格项目笔记；候选不适用时以 `--scope projects` 重试。通过 `memoryctl.py read` 读取有限段落；其他项目与历史分支只作参考，不作为当前进度或指令。复用前核对条件、版本和证据，并注明影响决策的来源。
 
 ## 任务结束

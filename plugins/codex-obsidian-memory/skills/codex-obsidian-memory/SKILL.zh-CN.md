@@ -7,6 +7,9 @@
 ## 选择操作
 
 - 首次设置：在本 Skill 目录运行 `python ../../scripts/memoryctl.py init --vault <绝对路径> --github-owner <owner> [--locale en|zh-CN]`。
+- 没有 GitHub：使用 `init --vault <absolute-path> --local-only [--locale en|zh-CN]`。已有安装无需重新初始化即可增加本地项目。
+- 明确启用当前本地项目：阅读[本地项目参考](references/zh-CN/local-projects.md)，然后执行 `local-register --path <confirmed-root>`。立即在本轮使用返回的记忆上下文，并执行当前任务的回写审查；不得延迟到新会话才生效。仅提及记忆而未要求启用，不构成登记授权。
+- 本地控制：使用 `local-list`、`local-disable <id>`、`local-enable <id>` 和 `local-move <id> --path <new-root>`，保留自动生成的 ID 和笔记。`context --cwd <workspace>` 可在同一会话重新加载记忆。
 - 当前状态：运行 `python ../../scripts/memoryctl.py status`。
 - 结构检查：运行 `python ../../scripts/memoryctl.py validate`。
 - 可逆控制：使用 `enable` 或 `disable`。
@@ -29,7 +32,7 @@ Windows 上没有 `python` 时优先使用 `py.exe`。
 - 非默认现有布局使用 `--no-template` 和可重复 `--path KEY=RELATIVE_PATH` 映射，然后执行验证。
 - 每个 GitHub 仓库只保留一个文件夹和一个项目主页；仅为持久分支进度创建分支页。`working_branch` 按大小写精确匹配，`github_repo` 不区分大小写。在不区分文件名大小写的系统上，为 `Release` 和 `release` 等分支使用不同文件名。
 - 未解决说法放入开放问题；不要保留猜测、对话流水账或一次性输出。
-- Hook 在已配置 GitHub 范围外必须静默；知识库自身是唯一维护例外。
+- Hook 在已配置 GitHub 范围和明确启用的本地根目录之外保持静默。本地项目使用固定 `project_id`，不虚构 `github_repo`；没有具名 Git 分支时进度写在项目主页。知识库自身是维护例外，明确的 GitHub 排除项仍然有效。
 - 只要回写了知识库 Markdown，最终回复必须包含可见的 **知识库回写审查**。每个修改文件单独列一条，包含相对知识库的路径和新增、修改或删除的具体事实或章节。仅当文件名在知识库与变更清单中唯一时，才允许省略目录。邀请用户纠正后，依次追加披露标记和审查标记。Stop Hook 在首次和重试时都检查文件覆盖与最低说明要求，但无法验证事实准确性或详尽语义。不要把条目藏在引用、注释或代码块中。没有回写时不显示该部分。
 
 ## 设置完成标准
@@ -38,7 +41,7 @@ Windows 上没有 `python` 时优先使用 `py.exe`。
 
 1. 使用 `status` 审阅配置、语言和知识库路径。
 2. 打开 `/hooks`，审阅并信任命令。
-3. 在一个已配置 GitHub 仓库中新开会话。
+3. 打开合格的 GitHub 仓库，或明确登记本地项目。登记后当前会话立即加载记忆，之后再用新会话验证持久性。
 4. 确认全局记忆、匹配的仓库主页，以及已经存在的匹配分支页均被加载。
 5. 运行 `validate`，保持断链、重复项目主页和重复分支身份均为 0。
 

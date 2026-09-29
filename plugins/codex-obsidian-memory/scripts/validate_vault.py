@@ -7,7 +7,8 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from memory_core import frontmatter_value, load_config, vault_path
+from memory_core import frontmatter_value, load_config, note_identity, vault_path
+from local_projects import find_local_home, local_registry
 from reuse_memory import lesson_errors, note_paths, project_notes, read_text
 
 
@@ -88,6 +89,7 @@ def main() -> int:
     projects_dir = vault_path(vault, config, "projects_dir")
     project_homes: dict[str, list[str]] = defaultdict(list)
     branch_identities: dict[tuple[str, str], list[str]] = defaultdict(list)
+    identity_errors = []
     for path in files:
         try:
             path.relative_to(projects_dir)
@@ -95,7 +97,12 @@ def main() -> int:
             continue
         text = path.read_text(encoding="utf-8")
         page_type = frontmatter_value(text, "type").casefold()
-        repository = frontmatter_value(text, "github_repo")
+        repository = note_identity(text)
+        declares_identity = (frontmatter_value(text, "project_id") or frontmatter_value(text, "github_repo")
+                             or frontmatter_value(text, "source_kind") == "local")
+        # Legacy anonymous pages remain unindexed, as before local-project support.
+        if page_type in {"project", "branch"} and declares_identity and not repository:
+            identity_errors.append(f"{path.relative_to(vault)}: expected one github_repo or local project_id")
         if page_type == "project" and repository:
             project_homes[repository.casefold()].append(str(path.relative_to(vault)))
         elif page_type == "branch" and repository:
@@ -113,8 +120,16 @@ def main() -> int:
         for (repository, branch), paths in branch_identities.items()
         if len(paths) > 1
     }
+    local_errors = []
+    try:
+        for entry in local_registry(config):
+            if entry["enabled"] and find_local_home(vault, config, entry) is None:
+                local_errors.append(f"{entry['project_id']}: project home missing")
+    except (OSError, ValueError) as exc:
+        local_errors.append(str(exc))
     graph = graph_report(vault, files)
-    sources = {note.path.relative_to(vault).as_posix(): note for note in project_notes(vault, config)}
+    sources = ({note.path.relative_to(vault).as_posix(): note for note in project_notes(vault, config)}
+               if not local_errors else {})
     reuse_errors = {}
     reusable_lessons = 0
     for path in note_paths(vault, vault_path(vault, config, "reuse_dir")):
@@ -134,6 +149,8 @@ def main() -> int:
         "branch_pages": sum(len(paths) for paths in branch_identities.values()),
         "duplicate_project_homes": duplicate_projects,
         "duplicate_branch_identities": duplicate_branches,
+        "project_identity_errors": identity_errors,
+        "local_registration_errors": local_errors,
         "reusable_lessons": reusable_lessons,
         "reusable_lesson_errors": reuse_errors,
         **graph,
@@ -143,6 +160,8 @@ def main() -> int:
         missing
         or duplicate_projects
         or duplicate_branches
+        or identity_errors
+        or local_errors
         or reuse_errors
         or graph["broken_links"]
         or graph["orphans"]

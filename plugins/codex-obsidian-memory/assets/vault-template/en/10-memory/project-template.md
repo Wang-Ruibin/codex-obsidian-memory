@@ -64,3 +64,7 @@ Project: [[20-projects/repository/repository|Project home]]
 ```
 
 Sanitize filename-invalid characters, but preserve the full Git branch in `working_branch`.
+
+## Explicit local projects
+
+`local-register` creates the project home with a generated `project_id: local:<32 lowercase hex digits>` and `source_kind: local`. Keep that ID; omit `github_repo`, `default_branch` and `upstream_repo` for a plain folder. Store progress on its project home when there is no named Git branch. For a local Git branch page, replace `github_repo` in the branch template with the registered `project_id` and preserve the real `working_branch`. Never invent an ID or a `main` branch. Link child pages from the existing project home. Registration returns context for immediate use in the current conversation.

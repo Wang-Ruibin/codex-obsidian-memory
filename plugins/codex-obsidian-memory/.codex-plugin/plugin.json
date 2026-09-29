@@ -1,6 +1,6 @@
 {
   "name": "codex-obsidian-memory",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Local-first Codex memory backed by Obsidian / 基于 Obsidian 的本地优先 Codex 长期记忆。",
   "author": {
     "name": "Wang-Ruibin",
@@ -22,6 +22,8 @@
     "defaultPrompt": [
       "Set up Obsidian memory for my GitHub projects.",
       "为我的 GitHub 项目建立 Obsidian 长期记忆。",
+      "Enable memory for this local project in the current conversation.",
+      "为当前本地项目启用长期记忆，并立即在本会话使用。",
       "Audit the memory graph / 检查长期记忆图谱。"
     ],
     "brandColor": "#7C3AED"

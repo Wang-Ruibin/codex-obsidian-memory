@@ -24,6 +24,8 @@ Only unique eligible project homes and directly linked children within their fol
 
 ## Shared lesson lifecycle
 
+Enabled local registrations also participate. Their notes use `project_id`, and derived lessons use `source_project_id` instead of `source_repo`; never fill both source identity fields. A local project can reuse GitHub experience when that source is eligible under the same configuration, and eligible GitHub projects can reuse local lessons. Local-only mode restricts candidates to enabled local registrations. See [local-projects.md](local-projects.md).
+
 Global memory keeps stable preferences and collaboration rules. Project notes retain project events and evidence. Shared topic pages keep transferable methods, limitations and failure lessons; the short shared index helps people browse them. Hooks provide paths and retrieval instructions without injecting the entire shared index or all lesson bodies.
 
 Use the configured `reuse_template`, or the plugin's matching `assets/vault-template/<locale>/10-memory/reusable/template.md` when the vault has no template yet. A topic uses `type: reusable-memory`, `status: verified`, `summary`, `keywords`, `source_repo`, `source_branch`, `source_note` and `verified_on`. Values are single-line scalars. `source_note` is an exact vault-relative path to an eligible project home or its directly linked child. `source_branch` matches the source branch case-sensitively; leave it empty for repository-level notes. `verified_on` is a real non-future `YYYY-MM-DD`, changed only after verification.

@@ -14,12 +14,13 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from memory_core import frontmatter_value, redact_secrets, repository_allowed, vault_path
+from memory_core import frontmatter_value, note_identity, redact_secrets, repository_allowed, vault_path
+from local_projects import local_home_path, local_source_allowed, registered_project
 
 
 MAX_NOTE_BYTES = 1024 * 1024
 REQUIRED_LESSON_FIELDS = (
-    "summary", "keywords", "source_repo", "source_note", "verified_on",
+    "summary", "keywords", "source_note", "verified_on",
 )
 
 
@@ -90,14 +91,16 @@ class Note:
     repository: str
     branch: str
     kind: str
+    project_id: str = ""
 
     def metadata(self, vault: Path) -> dict[str, Any]:
         heading = re.search(r"(?m)^# +(.+)$", self.text)
         data = {
             "path": self.path.relative_to(vault).as_posix(),
-            "title": (heading.group(1) if heading else self.path.stem)[:160],
+            "title": (heading.group(1).strip() if heading else self.path.stem)[:160],
             "kind": self.kind,
             "repository": self.repository,
+            "project_id": self.project_id,
             "branch": self.branch,
             "reference_only": True,
             "updated": frontmatter_value(self.text, "updated")[:40],
@@ -113,16 +116,23 @@ def project_notes(vault: Path, config: dict[str, Any]) -> list[Note]:
     directory = vault_path(vault, config, "projects_dir")
     texts = {path: text for path in note_paths(vault, directory)
              if (text := read_header(path)) is not None}
-    homes = [(path, frontmatter_value(text, "github_repo")) for path, text in texts.items()
+    homes = [(path, note_identity(text)) for path, text in texts.items()
              if frontmatter_value(text, "type").casefold() == "project"]
     repositories = Counter(repo.casefold() for _, repo in homes)
     folders = Counter(path.parent for path, _ in homes)
     result = []
-    for home, repository in homes:
+    for home, identity in homes:
         # Ambiguous homes cannot establish the identity of their child notes.
-        if repositories[repository.casefold()] != 1 or folders[home.parent] != 1:
+        if not identity or repositories[identity.casefold()] != 1 or folders[home.parent] != 1:
             continue
-        if not repository_allowed(repository, config, indexed=True):
+        project_id = identity if identity.startswith("local:") else ""
+        repository = "" if project_id else frontmatter_value(texts[home], "github_repo")
+        if project_id:
+            entry = registered_project(config, project_id)
+            if (entry is None or not local_source_allowed(entry, config)
+                    or local_home_path(vault, config, entry) != home):
+                continue
+        elif not repository_allowed(repository, config, indexed=True):
             continue
         home_text = read_text(home)
         if home_text is None:
@@ -144,15 +154,16 @@ def project_notes(vault: Path, config: dict[str, Any]) -> list[Note]:
             if path != home and path not in linked:
                 continue
             page_type = frontmatter_value(text, "type").casefold()
-            repo = frontmatter_value(text, "github_repo")
-            if repo and repo.casefold() != repository.casefold():
+            child_identity = note_identity(text)
+            has_identity = frontmatter_value(text, "github_repo") or frontmatter_value(text, "project_id")
+            if has_identity and child_identity != identity:
                 continue
             branch = frontmatter_value(text, "working_branch")
-            if page_type == "branch" and (not repo or not branch):
+            if page_type == "branch" and (not child_identity or not branch):
                 continue
             if path != home and page_type == "project":
                 continue
-            result.append(Note(path, text, repository, branch if page_type == "branch" else "", "project"))
+            result.append(Note(path, text, repository, branch if page_type == "branch" else "", "project", project_id))
     return result
 
 
@@ -168,9 +179,13 @@ def lesson_errors(text: str, vault: Path, sources: dict[str, Note]) -> list[str]
         errors.append("verified_on must be a non-future YYYY-MM-DD")
     # Exact vault-relative lookup: no traversal, symlink, guessed repo or branch.
     source = sources.get(frontmatter_value(text, "source_note"))
+    repository = frontmatter_value(text, "source_repo")
+    project_id = frontmatter_value(text, "source_project_id")
+    if bool(repository) == bool(project_id):
+        errors.append("Specify exactly one source_repo or source_project_id")
     if source is None:
         errors.append("source_note must identify an eligible linked project note")
-    elif (frontmatter_value(text, "source_repo").casefold() != source.repository.casefold()
+    elif (repository.casefold() != source.repository.casefold() or project_id != source.project_id
           or frontmatter_value(text, "source_branch") != source.branch):
         errors.append("source repository or exact branch does not match source_note")
     return errors
@@ -189,7 +204,8 @@ def shared_notes(vault: Path, config: dict[str, Any], projects: list[Note]) -> l
         if text is None:
             continue
         result.append(Note(path, text, frontmatter_value(text, "source_repo"),
-                           frontmatter_value(text, "source_branch"), "shared"))
+                           frontmatter_value(text, "source_branch"), "shared",
+                           frontmatter_value(text, "source_project_id")))
     return result
 
 

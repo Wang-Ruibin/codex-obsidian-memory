@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from writeback_review import disclosure_errors
+from local_projects import find_local_home, local_for_workspace, registered_project, clear_local_review
 
 from memory_core import (
     REVIEW_MARKER,
@@ -15,6 +16,8 @@ from memory_core import (
     clear_review_snapshot,
     find_project_page,
     frontmatter_value,
+    git_value,
+    note_identity,
     load_config,
     path_is_within,
     redact_secrets,
@@ -39,10 +42,11 @@ class Scope:
     repository: str = ""
     branch: str = ""
     project_page: Path | None = None
+    project_id: str = ""
 
     @property
     def eligible(self) -> bool:
-        return self.kind in {"vault", "github-project"}
+        return self.kind in {"vault", "github-project", "local-project"}
 
 
 def emit(value: dict[str, Any]) -> None:
@@ -61,13 +65,21 @@ def resolve_scope(event: dict[str, Any], config: dict[str, Any], vault: Path) ->
         return Scope(kind="vault", cwd=cwd)
 
     repository, branch = repository_identity(cwd)
-    if not repository:
-        return Scope(kind="none", cwd=cwd, branch=branch)
-
     normalized = repository.casefold()
     exclusions = {str(value).casefold() for value in config.get("excluded_repositories", [])}
     if normalized in exclusions:
         return Scope(kind="none", cwd=cwd, repository=repository, branch=branch)
+
+    local = local_for_workspace(cwd, config)
+    if local is not None:
+        if not local["enabled"]:
+            return Scope(kind="none", cwd=cwd)
+        top = git_value(cwd, "rev-parse", "--show-toplevel")
+        local_branch = branch if top and Path(top).resolve() == Path(local["root"]).resolve() else ""
+        return Scope(kind="local-project", cwd=cwd, branch=local_branch,
+                     project_id=local["project_id"], project_page=find_local_home(vault, config, local))
+    if not repository:
+        return Scope(kind="none", cwd=cwd, branch=branch)
 
     project_page = find_project_page(vault, config, repository) if vault.is_dir() else None
     if not repository_allowed(repository, config, indexed=project_page is not None):
@@ -129,11 +141,16 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
                 target_text = resolved.read_text(encoding="utf-8")
             except (OSError, RuntimeError, ValueError):
                 continue
+            identity = note_identity(target_text)
+            expected = scope.project_id or scope.repository.casefold()
+            if (identity and identity != expected) or (
+                    (frontmatter_value(target_text, "project_id") or frontmatter_value(target_text, "github_repo"))
+                    and not identity):
+                continue
             if frontmatter_value(target_text, "type").casefold() == "branch":
                 working_branch = frontmatter_value(target_text, "working_branch")
-                repository = frontmatter_value(target_text, "github_repo")
                 if (not scope.branch or working_branch != scope.branch
-                        or repository.casefold() != scope.repository.casefold()):
+                        or identity != expected):
                     continue
             add_note(resolved)
     else:
@@ -141,7 +158,8 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
         add_note(vault_path(vault, config, "project_index"))
         add_note(vault_path(vault, config, "template"))
 
-    owners = ", ".join(config.get("github_owners", [])) or "explicit inclusions only"
+    owners = ("disabled (local-only mode)" if config.get("scope_mode") == "local-only"
+              else ", ".join(config.get("github_owners", [])) or "explicit inclusions only")
     registration = ""
     if unregistered:
         registration = (
@@ -149,14 +167,23 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
             "create one project folder and project home from the template, then link it from "
             "the project index. Create a branch page only when durable branch-specific progress exists."
         )
+        if scope.kind == "local-project":
+            registration = (
+                "\nThe registered local project home is missing. Run local-register --path <registered-root> "
+                "to restore its existing ID and home; do not invent a GitHub repository."
+            )
     identity = (
-        f"cwd={scope.cwd}; repository={scope.repository or 'unidentified'}; "
+        f"cwd={scope.cwd}; repository={scope.repository or 'none'}; project_id={scope.project_id or 'none'}; "
         f"branch={scope.branch or 'unidentified'}"
     )
     return (
         "[Codex Obsidian Memory loaded before this task]\n"
         f"Vault: {vault}\nWorkspace: {identity}{registration}\n"
         f"Automatic GitHub owner scope: {owners}. The vault itself is the maintenance exception.\n\n"
+        "Explicitly registered local projects are also eligible. For local notes, use the exact project_id "
+        "instead of github_repo. If there is no current Git branch, keep progress on the project home; "
+        "do not create a synthetic main or detached-head branch page. Registration and this context "
+        "take effect in the current conversation and current task, without restarting.\n"
         + "\n\n[Cross-project reference discovery]\n"
         "Before substantial implementation, after a failed approach, or before changing strategy, "
         "search reusable memory using short problem, technology and environment keywords. "
@@ -219,7 +246,11 @@ def main() -> int:
     if not vault_text:
         return 0
     vault = Path(vault_text).resolve()
-    scope = resolve_scope(event, config, vault)
+    try:
+        scope = resolve_scope(event, config, vault)
+    except (OSError, ValueError) as exc:
+        print(f"Codex Obsidian Memory scope error: {exc}", file=sys.stderr)
+        return 1
     if not scope.eligible:
         if event_name == "Stop":
             emit({"continue": True})
@@ -240,11 +271,17 @@ def main() -> int:
     if event_name == "Stop":
         last_message = str(event.get("last_assistant_message") or "")
         changes = review_changes(event, vault)
+        local = registered_project(config, scope.project_id) if scope.project_id else None
+        for relative in (local or {}).get("pending_review", []):
+            if not any(path == relative for _, path in changes):
+                changes.append(("modified", relative))
         reviewed = REVIEW_MARKER in last_message
         errors = disclosure_errors(last_message, changes, vault) if changes else []
         disclosed = not errors
         if changes and reviewed and disclosed:
             clear_review_snapshot(event)
+            if local:
+                clear_local_review(scope.project_id)
             emit({"continue": True})
             return 0
         if not changes and reviewed:
@@ -276,6 +313,8 @@ def main() -> int:
         registration = ""
         if scope.kind == "github-project" and scope.project_page is None:
             registration = "Register this eligible repository in the project index. "
+        if scope.kind == "local-project" and scope.project_page is None:
+            registration = "Restore the registered local project home using its existing project_id. "
         emit(
             {
                 "decision": "block",

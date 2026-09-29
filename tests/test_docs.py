@@ -40,7 +40,7 @@ class DocumentationTests(unittest.TestCase):
         for english, chinese in pairs:
             with self.subTest(document=str(english.relative_to(ROOT))):
                 self.assert_document_pair(english, chinese)
-        for name in ("automation.md", "migration.md", "security.md", "structure.md", "reuse.md"):
+        for name in ("automation.md", "migration.md", "security.md", "structure.md", "reuse.md", "local-projects.md"):
             self.assert_document_pair(
                 SKILL / "references" / name,
                 SKILL / "references" / "zh-CN" / name,
@@ -87,6 +87,12 @@ class DocumentationTests(unittest.TestCase):
                           "source_repo:", "source_branch:", "source_note:", "verified_on:"):
                 self.assertIn(field, template)
 
+    def test_local_project_command_examples_are_localization_aligned(self) -> None:
+        english = (SKILL / "references/local-projects.md").read_text(encoding="utf-8")
+        chinese = (SKILL / "references/zh-CN/local-projects.md").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r"```bash\n(.*?)```", english, re.DOTALL),
+                         re.findall(r"```bash\n(.*?)```", chinese, re.DOTALL))
+
     def test_manual_scheduler_examples_pin_required_paths(self) -> None:
         references = [
             SKILL / "references" / "automation.md",
@@ -109,7 +115,7 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.5.0")
+        self.assertEqual(manifest["version"], "0.6.0")
 
     def test_agents_is_single_operational_source(self) -> None:
         self.assertTrue((ROOT / "AGENTS.md").is_file())

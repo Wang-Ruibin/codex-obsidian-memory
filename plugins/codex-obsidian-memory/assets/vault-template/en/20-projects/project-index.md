@@ -9,8 +9,8 @@ tags:
 
 ← [[00-memory-home|Memory home]]
 
-One direct link per GitHub repository. Do not link branch pages here.
+One direct link per GitHub repository or explicitly registered local project ID. Do not link branch pages here.
 
-## Active and tracked repositories
+## Active and tracked projects
 
 - None yet.
