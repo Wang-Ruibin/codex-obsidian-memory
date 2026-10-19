@@ -295,4 +295,12 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 
 [MIT](LICENSE). Copyright © 2026 Wang-Ruibin.
 
+---
+
+<div align="center">
+
 If it gave Codex a better memory, a little ⭐ would make this vault very happy. ✨
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Wang-Ruibin/codex-obsidian-memory&type=Date)](https://star-history.com/#Wang-Ruibin/codex-obsidian-memory&Date)
+
+</div>

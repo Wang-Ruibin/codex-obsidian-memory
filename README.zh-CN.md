@@ -286,4 +286,12 @@ Hook 依据精确仓库身份，或已登记的本地根目录和项目 ID 决�
 
 [MIT](LICENSE)。版权所有 © 2026 Wang-Ruibin。
 
+---
+
+<div align="center">
+
 如果它让 Codex 记得更清楚，欢迎送它一颗小星星 ⭐，这个记忆库会很开心的！✨
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Wang-Ruibin/codex-obsidian-memory&type=Date)](https://star-history.com/#Wang-Ruibin/codex-obsidian-memory&Date)
+
+</div>
