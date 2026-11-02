@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 import unittest
+import unicodedata
 from argparse import Namespace
 from contextlib import closing, redirect_stdout
 from io import StringIO
@@ -219,6 +220,15 @@ class ConversationTests(unittest.TestCase):
         note = self.vault / result["note"]
         self.assertTrue(note.is_file())
         self.assertLessEqual(len(note.name.encode("utf-8")), 200)
+
+    def test_unicode_normalization_alias_does_not_overwrite_an_existing_file(self):
+        foreign = self.vault / "40-conversations/Cafe\u0301.md"
+        foreign.write_text("Preserve the existing user's file.\n", encoding="utf-8")
+        before = foreign.read_bytes()
+        result = self.run_command("conversation-enable", title="Café")
+        note = self.vault / result["note"]
+        self.assertEqual(foreign.read_bytes(), before)
+        self.assertNotEqual(unicodedata.normalize("NFC", foreign.name), unicodedata.normalize("NFC", note.name))
 
     def test_review_does_not_clear_a_new_rename_receipt(self):
         a = self.run_command("conversation-enable")

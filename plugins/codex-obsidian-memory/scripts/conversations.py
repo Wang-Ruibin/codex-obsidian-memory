@@ -137,12 +137,16 @@ def same_file(first: Path, second: Path) -> bool:
 
 
 def destination(root: Path, title: str, value: str, old: Path | None = None) -> Path:
-    occupied = {path.name.casefold(): path for path in root.iterdir()} if root.is_dir() else {}
+    occupied = {unicodedata.normalize("NFC", path.name).casefold(): path for path in root.iterdir()} if root.is_dir() else {}
     target = root / filename(title)
     found = occupied.get(target.name.casefold())
+    if found is None and target.exists():
+        found = target  # Filesystem aliases must never bypass collision protection.
     if found is not None and (found.is_symlink() or old is None or not same_file(found, old)):
         target = root / (Path(filename(title)).stem + " [" + hashlib.sha256(value.encode()).hexdigest()[:10] + "].md")
         found = occupied.get(target.name.casefold())
+        if found is None and target.exists():
+            found = target
     if found is not None and (found.is_symlink() or old is None or not same_file(found, old)):
         raise ValueError("The conversation filename is occupied; no file was overwritten")
     return target
