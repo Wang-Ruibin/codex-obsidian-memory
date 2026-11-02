@@ -36,7 +36,7 @@ class RuntimeLauncherTests(unittest.TestCase):
 
     def run_launcher(self, *args, event=None, env=None):
         return subprocess.run([*self.launcher, *args], env=env or self.env, cwd=self.root,
-                              input=json.dumps(event) if event else None, capture_output=True,
+                              input=json.dumps(event, ensure_ascii=False) if event else None, capture_output=True,
                               text=True, encoding='utf-8', timeout=30,
                               creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
 
@@ -89,6 +89,67 @@ class RuntimeLauncherTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('prepare-runtime', result.stderr)
         self.assertFalse(self.runtime.exists())
+
+    def test_utf8_stop_review_accepts_chinese_and_preserves_rejections(self):
+        self.cached_python()
+        initialized = self.run_launcher('init', '--local-only', '--vault', str(self.vault), '--no-writable-root')
+        self.assertEqual(initialized.returncode, 0, initialized.stdout + initialized.stderr)
+        relatives = ['20-项目/中文 项目/分支.md', '20-项目/中文 项目/项目说明.md']
+        notes = [self.vault / relative for relative in relatives]
+        for note in notes:
+            note.parent.mkdir(parents=True, exist_ok=True)
+            note.write_text('已确认的项目背景。\n', encoding='utf-8')
+        entries = [f'- `{relatives[0]}`：记录中文输入的验证结果。',
+                   f'- [项目说明](<{notes[1].as_posix()}>): 补充安装方式与适用条件。']
+        disclosure = '<!-- obsidian-memory-writeback-disclosed -->'
+        reviewed = '<!-- obsidian-memory-reviewed -->'
+        for index, heading in enumerate(('## 知识库回写审查', '**知识库回写审查**')):
+            with self.subTest(heading=heading):
+                event = {'hook_event_name': 'UserPromptSubmit', 'cwd': str(self.vault),
+                         'session_id': 'utf8-review', 'turn_id': f'review-{index}'}
+                started = self.run_launcher('hook', event=event)
+                self.assertEqual(started.returncode, 0, started.stderr)
+                self.assertIn('hookSpecificOutput', json.loads(started.stdout))
+                for note in notes:
+                    note.write_text(note.read_text(encoding='utf-8') + '- 新增已验证结论。\n', encoding='utf-8')
+                visible = heading + '\n\n' + '\n'.join(entries) + '\n\n请审查，有误请指出。\n'
+                stop = {**event, 'hook_event_name': 'Stop', 'stop_hook_active': True}
+                invalid = [
+                    (visible + reviewed + '\n' + disclosure, 'in that order'),
+                    (heading + '\n' + entries[0] + '\n' + disclosure + '\n' + reviewed, relatives[1]),
+                    (heading + '\n' + '\n'.join(f'- `{path}`：已更新记忆' for path in relatives)
+                     + '\n' + disclosure + '\n' + reviewed, 'concrete per-file summary'),
+                ]
+                for message, problem in invalid:
+                    rejected = self.run_launcher('hook', event={**stop, 'last_assistant_message': message})
+                    self.assertEqual(rejected.returncode, 0, rejected.stderr)
+                    report = json.loads(rejected.stdout)
+                    self.assertEqual(report['decision'], 'block')
+                    self.assertIn(problem, report['reason'])
+                accepted = self.run_launcher('hook', event={**stop, 'last_assistant_message':
+                                             visible + disclosure + '\n' + reviewed})
+                self.assertEqual(accepted.returncode, 0, accepted.stderr)
+                self.assertEqual(json.loads(accepted.stdout), {'continue': True})
+
+    def test_utf8_hook_preserves_unicode_vault_path(self):
+        self.cached_python()
+        self.vault = self.root / '中文 知识库'
+        initialized = self.run_launcher('init', '--local-only', '--vault', str(self.vault), '--no-writable-root')
+        self.assertEqual(initialized.returncode, 0, initialized.stdout + initialized.stderr)
+        loaded = self.run_launcher('hook', event={'hook_event_name': 'SessionStart', 'cwd': str(self.vault)})
+        self.assertEqual(loaded.returncode, 0, loaded.stderr)
+        self.assertIn(str(self.vault), json.loads(loaded.stdout)['hookSpecificOutput']['additionalContext'])
+
+    def test_cli_uses_utf8_with_legacy_python_locale(self):
+        self.cached_python()
+        self.vault = self.root / '中文 知识库'
+        env = {**self.env, 'PYTHONUTF8': '0'}
+        initialized = self.run_launcher('init', '--local-only', '--locale', 'zh-CN', '--vault',
+                                        str(self.vault), '--no-writable-root')
+        self.assertEqual(initialized.returncode, 0, initialized.stdout + initialized.stderr)
+        status = self.run_launcher('status', env=env)
+        self.assertEqual(status.returncode, 0, status.stderr)
+        self.assertEqual(json.loads(status.stdout)['vault'], str(self.vault))
 
     def test_failed_cli_exit_code_is_preserved(self):
         self.cached_python()

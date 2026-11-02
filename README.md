@@ -281,6 +281,7 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 | Secret redaction | Treat it as defense in depth, not a complete secret scanner. |
 | Scheduled reports | The machine needs a working non-interactive Codex login. |
 | A write occurred but no disclosure appeared | Do not accept the result; verify the hook is trusted and start a new conversation. |
+| A complete Chinese review is repeatedly rejected on Windows | Ask Codex to update the installed memory runtime and check the review again. Keep the review in Chinese. |
 | Codex is asked to complete the writeback review again | Each changed note needs its own bullet with its vault-relative path and a concrete description. A filename or “updated” alone is not enough; ask Codex to complete the listed missing entries. |
 
 ## Documentation
@@ -299,7 +300,7 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 
 <div align="center">
 
-If it gave Codex a better memory, a little ⭐ would make this vault very happy. ✨
+If Codex Obsidian Memory helps Codex remember, a little ⭐ would make this vault very happy. ✨
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Wang-Ruibin/codex-obsidian-memory&type=Date)](https://star-history.com/#Wang-Ruibin/codex-obsidian-memory&Date)
 

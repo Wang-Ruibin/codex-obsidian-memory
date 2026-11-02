@@ -22,6 +22,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.
 
 启动器接受所有记忆 CLI 命令。`hook` 处理生命周期 JSON 协议，`routine` 运行周期任务，`python-path` 输出选定解释器路径供调度器安装使用。嵌入这些入口时保留标准输入、参数、标准输出和退出码。
 
+Windows 启动器按 UTF-8 读取生命周期 JSON，并以 UTF-8 模式启动 Python，在输入和输出中保留中文审查标题、笔记路径和工作区路径。排障时保持用户使用的审查语言；翻译审查内容不能修复输入解码错误。
+
 Windows 原生兼容集成还可用 `-Action manage` 通过已准备的解释器调用其管理器。未安装原生管理器时会报告错误；普通 marketplace 插件不含此管理器。
 
 ## 选择与下载
@@ -41,5 +43,7 @@ Hook 和普通 CLI 命令只使用缓存或已有合适解释器，不自行下�
 ## 开发与验证
 
 开发仍使用 Python 3.11+ 和标准库。验证 Windows/POSIX 设置、已有 Python 复用、PATH 中没有 Python 时的缓存运行、Hook 标准输入、中文与空格参数、退出码传递、校验失败和临时文件清理。对支持的发布平台另外执行真实私有下载检查。`hooks.json` 的启动命令变化后需要正常的宿主审阅与信任，不持久绕过审查。
+
+生命周期测试事件应保留未转义的 Unicode（`json.dumps(event, ensure_ascii=False)`），并经过实际启动器。使用 ASCII 转义的样例无法发现 Windows 标准输入的解码错误。验证完整中文审查能通过，标记顺序颠倒、缺少文件和笼统说明仍会失败，包括重试时。还需在继承环境设有 `PYTHONUTF8=0` 时，检查包含中文路径的 CLI 输出。
 
 来源：[uv Python 管理](https://docs.astral.sh/uv/guides/install-python/)、[uv 命令参考](https://docs.astral.sh/uv/reference/cli/)。

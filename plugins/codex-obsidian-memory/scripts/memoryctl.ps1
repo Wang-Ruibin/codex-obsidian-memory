@@ -5,6 +5,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+[Console]::InputEncoding = New-Object System.Text.UTF8Encoding($false)
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
 $codexRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path ([Environment]::GetFolderPath('UserProfile')) '.codex' }
@@ -143,14 +144,14 @@ $selected = Find-Python
 if (-not $selected) { throw 'Plugin runtime is not ready. Ask Codex to run memoryctl.ps1 -Action prepare-runtime.' }
 switch ($Action) {
     'python-path' { Write-Output $selected; exit 0 }
-    'hook' { $result = Invoke-Program $selected (@('-B', (Join-Path $PSScriptRoot 'hook.py')) + $Arguments) ([Console]::In.ReadToEnd()) }
-    'routine' { $result = Invoke-Program $selected (@('-B', (Join-Path $PSScriptRoot 'routine_runner.py')) + $Arguments) }
+    'hook' { $result = Invoke-Program $selected (@('-X', 'utf8', '-B', (Join-Path $PSScriptRoot 'hook.py')) + $Arguments) ([Console]::In.ReadToEnd()) }
+    'routine' { $result = Invoke-Program $selected (@('-X', 'utf8', '-B', (Join-Path $PSScriptRoot 'routine_runner.py')) + $Arguments) }
     'manage' {
         $manager = Join-Path $PSScriptRoot 'manage.py'
         if (-not (Test-Path -LiteralPath $manager)) { throw 'The native memory manager is unavailable in this plugin installation.' }
-        $result = Invoke-Program $selected (@('-B', $manager) + $Arguments)
+        $result = Invoke-Program $selected (@('-X', 'utf8', '-B', $manager) + $Arguments)
     }
-    default { $result = Invoke-Program $selected (@('-B', (Join-Path $PSScriptRoot 'memoryctl.py'), $Action) + $Arguments) }
+    default { $result = Invoke-Program $selected (@('-X', 'utf8', '-B', (Join-Path $PSScriptRoot 'memoryctl.py'), $Action) + $Arguments) }
 }
 [Console]::Out.Write($result.Out)
 [Console]::Error.Write($result.Err)

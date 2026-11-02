@@ -272,6 +272,7 @@ Hook 依据精确仓库身份，或已登记的本地根目录和项目 ID 决�
 | 秘密遮蔽 | 它只是纵深防御，不是完整的秘密扫描器。 |
 | 周期报告 | 机器需要可用的非交互 Codex 登录。 |
 | 已发生回写但没有披露 | 不要接受该结果；确认 Hook 已信任并新开会话。 |
+| Windows 反复拒绝内容完整的中文审查 | 让 Codex 更新本机已安装的记忆运行包，再检查审查结果；继续使用中文审查。 |
 | Codex 被再次要求补全回写审查 | 每个修改的笔记都需要单独一条列表项，写清相对知识库的路径和具体改动；只有文件名或“已更新”不够，让 Codex 补全提示中列出的缺失项。 |
 
 ## 使用文档
@@ -290,8 +291,8 @@ Hook 依据精确仓库身份，或已登记的本地根目录和项目 ID 决�
 
 <div align="center">
 
-如果它让 Codex 记得更清楚，欢迎送它一颗小星星 ⭐，这个记忆库会很开心的！✨
+如果 Codex Obsidian Memory 让 Codex 记得更清楚，送它一颗小星星 ⭐，这个记忆库会很开心的！✨
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Wang-Ruibin/codex-obsidian-memory&type=Date)](https://star-history.com/#Wang-Ruibin/codex-obsidian-memory&Date)
+[![Star 历史趋势图](https://api.star-history.com/svg?repos=Wang-Ruibin/codex-obsidian-memory&type=Date)](https://star-history.com/#Wang-Ruibin/codex-obsidian-memory&Date)
 
 </div>

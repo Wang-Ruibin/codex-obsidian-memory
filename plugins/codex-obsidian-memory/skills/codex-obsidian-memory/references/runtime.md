@@ -22,6 +22,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.
 
 The launchers accept all memory CLI commands. `hook` handles the lifecycle JSON protocol, `routine` invokes the routine runner, and `python-path` prints the resolved interpreter for scheduler installation. Preserve stdin, arguments, stdout and exit codes when embedding these entry points.
 
+The Windows launcher reads lifecycle JSON as UTF-8 and starts Python in UTF-8 mode, preserving Chinese review headings, note paths and workspace paths in both input and output. Keep the user's review language when troubleshooting; translating a review is not a fix for an input-decoding error.
+
 The Windows-native compatibility integration can also use `-Action manage` to call its installed manager through the prepared interpreter. This action reports an error when no native manager is present; ordinary marketplace plugins do not include one.
 
 ## Selection and downloads
@@ -41,5 +43,7 @@ A short-lived `prepare.lock` directory prevents concurrent setup. Inspect an int
 ## Development and verification
 
 Development still uses Python 3.11+ and the standard library. Test setup on Windows and POSIX, reuse of existing Python, cached operation without Python on PATH, lifecycle stdin, Unicode/spaced arguments, exit-code propagation, checksum failure and temporary-file cleanup. Perform a separate live private-download check on supported release platforms. Changing launcher commands in `hooks.json` requires normal host review/trust; do not persistently bypass that review.
+
+Send lifecycle test events with unescaped Unicode (`json.dumps(event, ensure_ascii=False)`) through the actual launcher. ASCII-escaped fixtures cannot detect Windows stdin decoding errors. Verify that complete Chinese reviews pass while reversed markers, missing files and generic descriptions still fail, including on retries. Also verify CLI output with a Chinese path and `PYTHONUTF8=0` in the inherited environment.
 
 Sources: [uv Python management](https://docs.astral.sh/uv/guides/install-python/), [uv command reference](https://docs.astral.sh/uv/reference/cli/).
