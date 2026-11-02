@@ -7,7 +7,7 @@
 ```text
 00-memory-home
 ├── 10-memory/global-memory
-├── 10-memory/reusable/index
+├── 30-reusable/index
 │   ├── template
 │   └── <topic>
 ├── 10-memory/maintenance
@@ -37,3 +37,7 @@
 ## 共享经验
 
 共享索引只保留主题摘要、关键词和链接，经验正文按需读取；来源仓库、精确分支、笔记路径和验证日期保存在主题页的普通字段中，不添加跨项目 Wiki 链接。默认自动上下文仍只包含当前项目和精确分支，检索到的历史分支始终标为参考。详见 [经验复用参考](reuse.md)。
+
+## 对话分区
+
+对话笔记位于独立的 `40-conversations` 分区，由首页链接到对话索引，再连接各对话笔记；与知识、项目和 `30-reusable` 平级。使用精确的 `conversation_id`，不填 GitHub 或本地项目身份。默认关闭，只有明确开启的当前对话才加载对应笔记。已有本地项目优先；同名标题用稳定 ID 区分。详见[对话参考](conversations.md)。

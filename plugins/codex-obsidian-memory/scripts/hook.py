@@ -9,6 +9,7 @@ from typing import Any
 
 from writeback_review import disclosure_errors
 from local_projects import find_local_home, local_for_workspace, registered_project, clear_local_review
+import conversations
 
 from memory_core import (
     REVIEW_MARKER,
@@ -43,10 +44,23 @@ class Scope:
     branch: str = ""
     project_page: Path | None = None
     project_id: str = ""
+    session_id: str = ""
 
     @property
     def eligible(self) -> bool:
-        return self.kind in {"vault", "github-project", "local-project"}
+        return self.kind in {"vault", "github-project", "local-project", "conversation"}
+
+    @property
+    def owner(self) -> str:
+        return conversations.identity(self.session_id) if self.kind == "conversation" else self.project_id or self.repository.casefold()
+
+    @property
+    def review_root(self) -> Path | None:
+        return self.project_page.parent if self.project_page and self.kind != "conversation" else None
+
+    @property
+    def review_files(self) -> tuple[Path, ...]:
+        return (self.project_page,) if self.kind == "conversation" and self.project_page else ()
 
 
 def emit(value: dict[str, Any]) -> None:
@@ -79,6 +93,12 @@ def resolve_scope(event: dict[str, Any], config: dict[str, Any], vault: Path) ->
         return Scope(kind="local-project", cwd=cwd, branch=local_branch,
                      project_id=local["project_id"], project_page=find_local_home(vault, config, local))
     if not repository:
+        value = str(event.get("session_id") or "")
+        entry = conversations.registered(value) if value else None
+        if entry and entry["enabled"]:
+            path = conversations.note_path(vault, config, entry)
+            conversations.own_text(path, value)
+            return Scope(kind="conversation", cwd=cwd, project_page=path, session_id=value)
         return Scope(kind="none", cwd=cwd, branch=branch)
 
     project_page = find_project_page(vault, config, repository) if vault.is_dir() else None
@@ -125,6 +145,8 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
         add_note(vault_path(vault, config, "home"))
         add_note(vault_path(vault, config, "maintenance"))
         add_note(vault_path(vault, config, "project_index"))
+    elif scope.kind == "conversation":
+        add_note(scope.project_page)
     elif scope.project_page is not None:
         project_text = add_note(scope.project_page)
         link_source = re.sub(r"```.*?```", "", project_text, flags=re.DOTALL)
@@ -161,6 +183,13 @@ def build_context(scope: Scope, config: dict[str, Any], vault: Path) -> str:
     owners = ("disabled (local-only mode)" if config.get("scope_mode") == "local-only"
               else ", ".join(config.get("github_owners", [])) or "explicit inclusions only")
     registration = ""
+    if scope.kind == "conversation":
+        registration = ("\nConversation memory was explicitly enabled for this session only. "
+                        "Save durable facts only in its own conversation note; do not create a project or branch page. "
+                        "Other conversations remain off unless explicitly enabled. "
+                        "Natural-language requests to stop remembering call conversation-disable; retain its note. "
+                        f"Use --session-id {scope.session_id} for context/search/read outside a project. "
+                        "Filename changes are synchronized from local title metadata; disclose pending note/index renames.\n")
     if unregistered:
         registration = (
             "\nThis eligible GitHub repository is not indexed yet. Before the task ends, "
@@ -251,9 +280,18 @@ def main() -> int:
     vault = Path(vault_text).resolve()
     try:
         scope = resolve_scope(event, config, vault)
+        if scope.kind == "conversation":
+            conversations.sync_titles(config, only=scope.session_id)
+            scope = resolve_scope(event, config, vault)
     except (OSError, ValueError) as exc:
         print(f"Codex Obsidian Memory scope error: {exc}", file=sys.stderr)
         return 1
+    watcher_warning = ""
+    try:
+        conversations.ensure_watcher()
+    except (OSError, ValueError):
+        if scope.kind == "conversation":
+            watcher_warning = "Automatic title watcher could not start; the current note is retained. Retry conversation-sync or the next prompt."
     if not scope.eligible:
         if event_name == "Stop":
             emit({"continue": True})
@@ -273,21 +311,26 @@ def main() -> int:
 
     if event_name == "Stop":
         last_message = str(event.get("last_assistant_message") or "")
-        owner = scope.project_id or scope.repository.casefold()
+        owner = scope.owner
         try:
-            changes = review_changes(event, vault, project_root=scope.project_page.parent if scope.project_page else None,
-                                     owner=owner)
+            changes = review_changes(event, vault, project_root=scope.review_root,
+                                     owner=owner, files=scope.review_files)
         except ValueError as exc:
             emit({"decision": "block", "reason": str(exc)})
             return 0
         local = registered_project(config, scope.project_id) if scope.project_id else None
-        for relative in (local or {}).get("pending_review", []):
+        conversation = conversations.registered(scope.session_id) if scope.kind == "conversation" else None
+        pending = (conversation or local or {}).get("pending_review", [])
+        for relative in pending:
             if not any(path == relative for _, path in changes):
-                changes.append(("modified", relative))
+                changes.append(("modified" if (vault / relative).exists() else "deleted", relative))
         reviewed = REVIEW_MARKER in last_message
         errors = disclosure_errors(last_message, changes, vault) if changes else []
         disclosed = not errors
         if changes and reviewed and disclosed:
+            if conversation and not conversations.clear_review(scope.session_id, pending):
+                emit({"decision": "block", "reason": "The conversation title changed during review. Review its latest note paths again."})
+                return 0
             clear_review_snapshot(event)
             if local:
                 clear_local_review(scope.project_id)
@@ -330,7 +373,7 @@ def main() -> int:
                 "reason": (
                     "Review durable Obsidian memory before ending. "
                     + registration
-                    + "Write only reusable project facts and exact-branch progress; do not write "
+                    + "Write only durable facts in this scope's own note, using exact-branch pages for projects; do not write "
                     "unverified shared lessons. Consider distilling verified cross-project methods "
                     "with sources and applicability, updating the shared index without duplicating facts. Do not write "
                     "chat logs or credentials. If nothing durable changed, do not edit notes. "
@@ -347,9 +390,9 @@ def main() -> int:
         )
     else:
         if event_name == "UserPromptSubmit":
-            owner = scope.project_id or scope.repository.casefold()
+            owner = scope.owner
             save_review_snapshot(event, vault, owner=owner,
-                                 project_root=scope.project_page.parent if scope.project_page else None)
+                                 project_root=scope.review_root, files=scope.review_files)
         context = build_context(scope, config, vault)
         if event_name == "UserPromptSubmit" and scope.kind != "vault":
             snapshot = review_snapshot_path(event)
@@ -367,6 +410,7 @@ def main() -> int:
                                           shared_guidance + "\n[Cross-project reference discovery]", 1)
     emit(
         {
+            **({"systemMessage": watcher_warning} if watcher_warning else {}),
             "hookSpecificOutput": {
                 "hookEventName": event_name,
                 "additionalContext": context,

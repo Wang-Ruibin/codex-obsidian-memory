@@ -33,9 +33,11 @@
 | `projects_dir` | 仓库文件夹 | `20-projects` |
 | `weekly_brief` | 每周报告 | `10-memory/weekly-brief.md` |
 | `monthly_audit` | 每月报告 | `10-memory/monthly-audit.md` |
-| `reuse_dir` | 共享主题目录 | `10-memory/reusable` |
-| `reuse_index` | 简短共享索引 | `10-memory/reusable/index.md` |
-| `reuse_template` | 经验编写模板 | `10-memory/reusable/template.md` |
+| `reuse_dir` | 共享主题目录 | `30-reusable` |
+| `reuse_index` | 简短共享索引 | `30-reusable/index.md` |
+| `conversations_dir` | 对话笔记 | `40-conversations` |
+| `conversation_index` | 对话索引 | `40-conversations/index.md` |
+| `reuse_template` | 经验编写模板 | `30-reusable/template.md` |
 
 ## 手工示例
 
@@ -56,3 +58,18 @@ Windows 上没有 `python` 时使用 `py.exe`。接管后立即运行 `status` �
 ## 增加经验复用
 
 旧知识库无需重新初始化即可检索；缺少共享区时自动回退到项目笔记。首次产生已验证经验时再按配置路径添加索引与主题。不要为此重跑 `init` 或覆盖旧协议；必要时只合并检索与提炼规则，保留原有范围和设置。新增路径、旧协议中的分支限制与模板链接的适配见 [经验复用参考](reuse.md)。其他分支仅可作为明确标注的历史参考，不作为当前进度。
+
+## 根目录分区迁移
+
+新知识库将可复用经验放在 `30-reusable`，对话放在 `40-conversations`，与知识、项目平级。
+已有笔记不会被 Hook 静默搬动。用户明确要求调整布局时，先运行只读计划，检查目标
+路径和逐文件清单，为受影响的笔记与配置保留一个必要的恢复点，再执行并验证。
+保留原 owner、排除项和本地项目登记；不要重新运行 init。中文自定义目录可分别使用
+`30-可复用经验` 和 `40-对话`，用 `--conversation-index` 指定对话索引路径。
+
+```bash
+sh ../../scripts/memoryctl.sh migrate-layout --reuse-dir 30-reusable --conversations-dir 40-conversations
+sh ../../scripts/memoryctl.sh migrate-layout --reuse-dir 30-reusable --conversations-dir 40-conversations --apply --review-token <current-turn-token> --cwd /absolute/workspace
+```
+
+目标已存在、符号链接或其他对话占用共享笔记时会停止，不覆盖或删除用户笔记。迁移修复内部链接；外部 URL 保持不变。命令失败会回滚本轮已完成操作；中断或断电后的恢复使用预留的恢复点。按命令返回的清单逐文件披露移动、新建和链接变化。

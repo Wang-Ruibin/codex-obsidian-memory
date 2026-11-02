@@ -7,7 +7,7 @@ Use this reference when changing note paths, graph routing, project identity or 
 ```text
 00-memory-home
 ├── 10-memory/global-memory
-├── 10-memory/reusable/index
+├── 30-reusable/index
 │   ├── template
 │   └── <topic>
 ├── 10-memory/maintenance
@@ -37,3 +37,7 @@ Keep stable goals, constraints, background, reasoned decisions, verified outcome
 ## Shared experience
 
 The shared index holds only topic summaries, keywords and links; lesson bodies are read on demand. Source repository, exact branch, note path and verification date are plain topic fields, not cross-project Wiki links. Automatic context remains scoped to the current project and exact branch; retrieved historical branches are always references. See [reuse.md](reuse.md).
+
+## Conversation area
+
+Conversation notes live in the separate `40-conversations` area: memory home links to its index, which links to each note. This is a sibling of knowledge, projects and `30-reusable`. Use exact `conversation_id`, without GitHub or local-project identity fields. Memory defaults off and only explicitly enabled sessions load their own note. Existing local project memory takes precedence; stable IDs distinguish duplicate titles. See [conversations.md](conversations.md).

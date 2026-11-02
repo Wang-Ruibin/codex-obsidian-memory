@@ -280,9 +280,34 @@ def command_retrieval(args: argparse.Namespace) -> int:
     vault = Path(config["vault"]).resolve()
     if not vault.is_dir():
         raise ValueError("Configured vault is unavailable; no notes were searched.")
-    scope = resolve_scope({"cwd": str(args.cwd.resolve())}, config, vault)
+    scope = resolve_scope({"cwd": str(args.cwd.resolve()),
+                           "session_id": getattr(args, "session_id", None) or os.environ.get("CODEX_THREAD_ID", "")}, config, vault)
     if not scope.eligible:
         raise ValueError("Workspace is not an eligible GitHub or enabled local project; no notes were searched.")
+    if scope.kind == "conversation":
+        from conversations import own_text
+        from memory_core import redact_secrets
+        if args.command == "context":
+            from hook import build_context
+            result = {"context": build_context(scope, config, vault)}
+        else:
+            # Ordinary chat notes never become a global searchable chat catalog.
+            relative = scope.project_page.relative_to(vault).as_posix()
+            if args.command == "read" and args.path != relative:
+                raise ValueError("Conversation reads are limited to its own memory note")
+            text = redact_secrets(own_text(scope.project_page, scope.session_id))
+            if args.command == "read":
+                start = max(1, args.start_line)
+                lines = text.splitlines()
+                count = min(80, max(1, args.line_count))
+                result = {"path": relative, "lines": [{"line": i + 1, "text": lines[i][:1000]}
+                          for i in range(start - 1, min(len(lines), start - 1 + count))]}
+            else:
+                terms = args.query.casefold().split()
+                result = {"searched": ["conversation"], "results": [{"path": relative, "kind": "conversation"}]
+                          if any(term in text.casefold() for term in terms) else []}
+        print(json.dumps(result, ensure_ascii=True, indent=2))
+        return 0
     if args.command == "search":
         result = search(vault, config, args.query, args.scope, args.limit)
     elif args.command == "context":
@@ -341,6 +366,24 @@ def command_uninstall(_: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Manage Codex Obsidian Memory.")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    from layout_migration import command as layout_command
+    migration = subparsers.add_parser("migrate-layout", help="Plan or apply a root-level vault layout migration.")
+    migration.add_argument("--reuse-dir", default="30-reusable")
+    migration.add_argument("--conversations-dir", default="40-conversations")
+    migration.add_argument("--conversation-index")
+    migration.add_argument("--apply", action="store_true")
+    migration.add_argument("--review-token")
+    migration.add_argument("--session-id")
+    migration.add_argument("--cwd", type=Path, default=Path.cwd())
+    migration.set_defaults(handler=layout_command)
+    from conversations import command as conversation_command
+    for name in ("conversation-enable", "conversation-disable", "conversation-list", "conversation-sync"):
+        conversation = subparsers.add_parser(name, help="Explicit per-conversation memory control.")
+        conversation.add_argument("--session-id")
+        conversation.add_argument("--cwd", type=Path, default=Path.cwd())
+        conversation.add_argument("--title", help="Actual displayed title when local metadata is unavailable.")
+        conversation.add_argument("--freeze-title", action="store_true", help="Also pause filename synchronization when disabling memory.")
+        conversation.set_defaults(handler=conversation_command)
     init = subparsers.add_parser("init", help="Create or adopt a vault and enable memory.")
     init.add_argument("--vault", type=Path, required=True)
     init.add_argument("--github-owner", action="append")
@@ -408,6 +451,8 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser(
         "uninstall", help="Remove plugin state and its own writable-root entry; never delete the vault."
     ).set_defaults(handler=command_uninstall)
+    for name in ("search", "read", "context"):
+        subparsers.choices[name].add_argument("--session-id")
     return parser
 
 

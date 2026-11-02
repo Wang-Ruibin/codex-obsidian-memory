@@ -120,6 +120,30 @@ def main() -> int:
         for (repository, branch), paths in branch_identities.items()
         if len(paths) > 1
     }
+    conversation_notes = defaultdict(list)
+    conversation_errors = []
+    conversations_dir = vault_path(vault, config, "conversations_dir")
+    for path in files:
+        if not path.is_relative_to(conversations_dir):
+            continue
+        text = path.read_text(encoding="utf-8")
+        if frontmatter_value(text, "type") != "conversation":
+            continue
+        identity = frontmatter_value(text, "conversation_id")
+        if not re.fullmatch(r"codex:[A-Za-z0-9][A-Za-z0-9_-]{0,127}", identity):
+            conversation_errors.append(f"{path.relative_to(vault)}: invalid conversation identity")
+        else:
+            conversation_notes[identity].append(path.relative_to(vault).as_posix())
+    for identity, paths in conversation_notes.items():
+        if len(paths) > 1:
+            conversation_errors.append(f"{identity}: duplicate conversation notes")
+    try:
+        from conversations import load_state, note_path, own_text
+        for value, entry in load_state()["entries"].items():
+            if entry["enabled"]:
+                own_text(note_path(vault, config, entry), value)
+    except (OSError, ValueError) as exc:
+        conversation_errors.append(str(exc))
     local_errors = []
     try:
         for entry in local_registry(config):
@@ -151,6 +175,8 @@ def main() -> int:
         "duplicate_branch_identities": duplicate_branches,
         "project_identity_errors": identity_errors,
         "local_registration_errors": local_errors,
+        "conversation_notes": sum(len(paths) for paths in conversation_notes.values()),
+        "conversation_errors": conversation_errors,
         "reusable_lessons": reusable_lessons,
         "reusable_lesson_errors": reuse_errors,
         **graph,
@@ -162,6 +188,7 @@ def main() -> int:
         or duplicate_branches
         or identity_errors
         or local_errors
+        or conversation_errors
         or reuse_errors
         or graph["broken_links"]
         or graph["orphans"]

@@ -28,7 +28,7 @@ Enabled local registrations also participate. Their notes use `project_id`, and 
 
 Global memory keeps stable preferences and collaboration rules. Project notes retain project events and evidence. Shared topic pages keep transferable methods, limitations and failure lessons; the short shared index helps people browse them. Hooks provide paths and retrieval instructions without injecting the entire shared index or all lesson bodies.
 
-Use the configured `reuse_template`, or the plugin's matching `assets/vault-template/<locale>/10-memory/reusable/template.md` when the vault has no template yet. A topic uses `type: reusable-memory`, `status: verified`, `summary`, `keywords`, `source_repo`, `source_branch`, `source_note` and `verified_on`. Values are single-line scalars. `source_note` is an exact vault-relative path to an eligible project home or its directly linked child. `source_branch` matches the source branch case-sensitively; leave it empty for repository-level notes. `verified_on` is a real non-future `YYYY-MM-DD`, changed only after verification.
+Use the configured `reuse_template`, or the plugin's matching `assets/vault-template/<locale>/30-reusable/template.md` when the vault has no template yet. A topic uses `type: reusable-memory`, `status: verified`, `summary`, `keywords`, `source_repo`, `source_branch`, `source_note` and `verified_on`. Values are single-line scalars. `source_note` is an exact vault-relative path to an eligible project home or its directly linked child. `source_branch` matches the source branch case-sensitively; leave it empty for repository-level notes. `verified_on` is a real non-future `YYYY-MM-DD`, changed only after verification.
 
 Write applicability and prerequisites, the method and reason, limitations and known failures, and the supporting evidence. Metadata validation checks provenance and date structure; it cannot prove that an author's claim of verification is true. Check the evidence before publishing or applying a lesson. One lesson has one primary provenance record; additional evidence can be described in its body.
 
@@ -43,7 +43,7 @@ The Hook stores one review snapshot per session and turn. A project snapshot has
 To edit a shared lesson or global-memory note from a project conversation, use the exact review token injected by this turn's Hook. Run the platform launcher with:
 
 ```bash
-sh ../../scripts/memoryctl.sh claim-shared 10-memory/reusable/example.md --review-token <current-turn-token> --cwd /absolute/path/to/project
+sh ../../scripts/memoryctl.sh claim-shared 30-reusable/example.md --review-token <current-turn-token> --cwd /absolute/path/to/project
 ```
 
 Use the configured vault-relative path, not this example, and do not store the token in a note. The command checks the current workspace and reserves that one shared file. The Stop review includes the file's change from its claim-time digest; the reservation ends only after an accepted visible review. Another conversation receives a busy result and must wait. If the turn has no review token, keep the conclusion in the project note and defer the shared edit. Unclaimed shared changes cannot be assigned safely to a project turn from vault-wide hashes.
@@ -52,7 +52,7 @@ Distinct projects and their reviews are isolated, including when their work over
 
 ## Existing vaults and custom paths
 
-No migration is required for retrieval: old configuration files inherit the new default path keys; an absent shared area simply falls back to project search. The new files are optional for validation of older vaults. Search/read never create directories or edit configuration. Do not re-run `init` just to gain this feature; it replaces integration settings.
+No migration is required for retrieval: configured old paths are retained, and an existing legacy `10-memory/reusable` directory remains recognized until explicit migration; an absent shared area falls back to project search. New vaults use root-level `30-reusable`. The new files are optional for validation of older vaults. Search/read never create directories or edit configuration. Do not re-run `init` just to gain this feature; it replaces integration settings.
 
 At the first verified reusable result, create only the needed topic, index and optional template using the configured paths, and add the index link to memory home. Adapt all template links to the existing layout. Inspect `status` and the existing configuration first; preserve owners, exclusions and other settings. If custom shared paths are desired, update only `paths.reuse_dir`, `paths.reuse_index` and `paths.reuse_template` in the integration configuration, after obtaining any required configuration approval. Keep index and template inside `reuse_dir`, and keep that directory separate from `projects_dir`; all paths remain inside the vault.
 

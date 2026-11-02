@@ -100,7 +100,7 @@ github_repo: Example/demo
         self.assertIn("not indexed yet", context)
 
     def test_retrieval_guidance_is_small_and_does_not_inject_shared_bodies(self) -> None:
-        reuse = self.vault / "10-memory/reusable"
+        reuse = self.vault / "30-reusable"
         (reuse / "index.md").write_text("ENTIRE SHARED INDEX", encoding="utf-8")
         (reuse / "lesson.md").write_text("OTHER PROJECT FULL LESSON", encoding="utf-8")
         scope = hook.Scope("github-project", self.vault, "Example/demo", "main",

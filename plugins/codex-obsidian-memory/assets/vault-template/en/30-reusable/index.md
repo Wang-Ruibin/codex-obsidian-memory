@@ -17,4 +17,4 @@ No lessons yet. Add one link per topic with a short summary and keywords after v
 
 ## Authoring
 
-- [[10-memory/reusable/template|Reusable lesson template]]
+- [[30-reusable/template|Reusable lesson template]]

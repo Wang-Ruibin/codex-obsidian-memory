@@ -28,7 +28,7 @@ python ../../scripts/memoryctl.py read 20-projects/example/main.md --cwd /absolu
 
 全局记忆保存稳定偏好与协作规则。项目笔记保留项目事件和证据。共享主题页保存可迁移方法、限制和失败经验；简短索引便于人工浏览。Hook 提供路径和检索指引，不注入完整共享索引或全部经验正文。
 
-使用配置的 `reuse_template`；知识库尚无模板时，参考插件中对应语言的 `assets/vault-template/<locale>/10-memory/reusable/template.md`。主题页使用 `type: reusable-memory`、`status: verified`、`summary`、`keywords`、`source_repo`、`source_branch`、`source_note` 和 `verified_on`。字段值使用单行标量。`source_note` 是合格项目主页或其直接链接子页相对知识库的精确路径。`source_branch` 与来源分支区分大小写地匹配；仓库级笔记留空。`verified_on` 是真实、非未来的 `YYYY-MM-DD`，只有验证后才更新。
+使用配置的 `reuse_template`；知识库尚无模板时，参考插件中对应语言的 `assets/vault-template/<locale>/30-reusable/template.md`。主题页使用 `type: reusable-memory`、`status: verified`、`summary`、`keywords`、`source_repo`、`source_branch`、`source_note` 和 `verified_on`。字段值使用单行标量。`source_note` 是合格项目主页或其直接链接子页相对知识库的精确路径。`source_branch` 与来源分支区分大小写地匹配；仓库级笔记留空。`verified_on` 是真实、非未来的 `YYYY-MM-DD`，只有验证后才更新。
 
 写清适用条件与前提、方法及理由、限制与已知失败方式，以及支持证据。元数据校验只能检查来源和日期结构，无法证明作者所写“已验证”确实成立。发布或采用经验前必须检查证据。每条经验有一个主要来源记录，其他证据可在正文说明。
 
@@ -43,7 +43,7 @@ Hook 按会话和轮次保存独立审核快照。项目快照只计算本项目
 从项目对话修改共享经验或全局记忆时，使用本轮 Hook 注入的精确审核标识。通过平台启动器执行：
 
 ```bash
-sh ../../scripts/memoryctl.sh claim-shared 10-memory/reusable/example.md --review-token <current-turn-token> --cwd /absolute/path/to/project
+sh ../../scripts/memoryctl.sh claim-shared 30-reusable/example.md --review-token <current-turn-token> --cwd /absolute/path/to/project
 ```
 
 使用知识库配置中的真实相对路径，不照搬示例，也不要将审核标识写进笔记。命令检查当前工作区，只占用这一篇共享文件。Stop 审核依据声明时的哈希纳入该文件的变化；只有可见审查被接受才释放占用。另一对话会收到“正在占用”提示，需要等待。若本轮没有审核标识，先将结论写到项目页，延后共享编辑。仅靠全库哈希无法安全判断未声明的共享变化属于哪个对话。
@@ -59,3 +59,5 @@ sh ../../scripts/memoryctl.sh claim-shared 10-memory/reusable/example.md --revie
 ## 验证方式
 
 使用包含 A 项目和 B 项目来源笔记的隔离知识库，检查共享优先、没有共享目录时的回退、带精确身份的历史分支有限读取、排除 B 后其笔记及衍生经验均不可检索，以及拒绝范围外工作区。确认 `validate` 报告无效来源，新建英文与中文模板都通过校验，检索不改变笔记和配置。发布前运行完整单元、本地化检查及插件／Skill 校验。
+
+旧配置中的自定义路径保持不变；现存的旧 `10-memory/reusable` 在明确迁移前继续识别，新知识库默认使用根目录的 `30-reusable`。检索本身不搬动目录。

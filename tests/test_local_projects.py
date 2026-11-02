@@ -226,7 +226,7 @@ class LocalProjectTests(unittest.TestCase):
         page = self.vault / entry["project_home"]
         with page.open("a", encoding="utf-8") as handle:
             handle.write("\nPortable offline evidence\n")
-        lesson = self.vault / "10-memory/reusable/local.md"
+        lesson = self.vault / "30-reusable/local.md"
         lesson.write_text("---\ntype: reusable-memory\nstatus: verified\nsummary: Portable offline result\n"
                           f"keywords: portable offline\nsource_project_id: {entry['project_id']}\n"
                           f"source_note: {entry['project_home']}\nsource_branch:\nverified_on: 2026-01-01\n"

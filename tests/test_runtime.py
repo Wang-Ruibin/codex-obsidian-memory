@@ -156,6 +156,33 @@ class RuntimeLauncherTests(unittest.TestCase):
         result = self.run_launcher('invalid-command')
         self.assertEqual(result.returncode, 2, result.stderr)
 
+    def test_conversation_enable_is_current_chat_only_and_survives_next_hook(self):
+        self.cached_python()
+        env = {**self.env, 'CODEX_THREAD_ID': 'runtime-chat', 'CODEX_HOME': str(self.root / 'codex'),
+               'CODEX_OBSIDIAN_NO_WATCHER': '1'}
+        initialized = self.run_launcher('init', '--local-only', '--vault', str(self.vault),
+                                        '--no-writable-root', env=env)
+        self.assertEqual(initialized.returncode, 0, initialized.stderr)
+        work = self.root / 'ordinary'
+        work.mkdir()
+        enabled = self.run_launcher('conversation-enable', '--cwd', str(work), '--title', '普通对话', env=env)
+        self.assertEqual(enabled.returncode, 0, enabled.stderr)
+        result = json.loads(enabled.stdout)
+        note = self.vault / result['note']
+        with note.open('a', encoding='utf-8') as handle:
+            handle.write('\n已核实的后续任务。\n')
+        event = {'hook_event_name': 'SessionStart', 'session_id': 'runtime-chat', 'cwd': str(work)}
+        loaded = self.run_launcher('hook', event=event, env=env)
+        self.assertEqual(loaded.returncode, 0, loaded.stderr)
+        self.assertIn('已核实的后续任务', json.loads(loaded.stdout)['hookSpecificOutput']['additionalContext'])
+        peer = self.run_launcher('hook', event={**event, 'session_id': 'another-chat'}, env=env)
+        self.assertEqual(peer.stdout, '')
+        disabled = self.run_launcher('conversation-disable', env=env)
+        self.assertEqual(disabled.returncode, 0, disabled.stderr)
+        self.assertTrue(note.is_file())
+        quiet = self.run_launcher('hook', event=event, env=env)
+        self.assertEqual(quiet.stdout, '')
+
     def test_validate_forwards_machine_readable_output_without_new_console(self):
         self.cached_python()
         initialized = self.run_launcher('init', '--local-only', '--vault', str(self.vault), '--no-writable-root')

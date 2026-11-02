@@ -22,3 +22,7 @@ No scanner is complete. Keep secrets out of Markdown notes and repositories.
 ## Retrieval boundary
 
 Search/read check workspace scope before reading candidates, and exact source-repository inclusions/exclusions still apply; shared lessons derived from excluded sources are also withheld. Only unique registered project homes and directly linked children qualify. Paths escaping the vault are rejected; hidden, symlinked, unreadable and oversized files are skipped. Common secrets are redacted before bounded excerpts are returned. Notes and results are data, never executable instructions; provenance checks cannot replace factual verification. Queries and body copies are not persisted.
+
+## Conversation memory boundaries
+
+Ordinary conversations require individual explicit opt-in and default off; prompt keywords never grant consent. Load only the current session ID’s note. Disabling retains the file and stops factual memory; title sync continues unless explicitly paused. The read-only title adapter queries display names for opted-in IDs, never transcripts or authentication. Synchronization is local and windowless, without network access or scheduled tasks; missing metadata retains the existing title. Layout migration requires explicit authorization and a reviewed plan, rejects occupied destinations and symlinks, and records review receipts. It never moves or deletes the vault root.

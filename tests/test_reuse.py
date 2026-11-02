@@ -56,7 +56,7 @@ class ReuseTests(unittest.TestCase):
                   "source_note": "20-projects/old/release.md", "source_branch": "Release",
                   "verified_on": "2026-01-01"}
         fields.update(overrides)
-        path = self.vault / "10-memory/reusable/background.md"
+        path = self.vault / "30-reusable/background.md"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("---\n" + "".join(f"{key}: {value}\n" for key, value in fields.items())
                         + "---\n# Windows background tasks\n[[index]]\n"
@@ -72,7 +72,7 @@ class ReuseTests(unittest.TestCase):
                               capture_output=True, text=True, encoding="utf-8", check=False)
 
     def test_old_vault_falls_back_and_preserves_branch_identity(self) -> None:
-        shutil.rmtree(self.vault / "10-memory/reusable")
+        shutil.rmtree(self.vault / "30-reusable")
         result = search(self.vault, self.config, "Windows 闪窗")
         self.assertEqual(result["searched"], ["shared", "projects"])
         hit = result["results"][0]
@@ -218,7 +218,7 @@ class ReuseTests(unittest.TestCase):
         custom = self.vault / "知识/复用"
         custom.parent.mkdir()
         self.lesson()
-        shutil.move(str(self.vault / "10-memory/reusable"), custom)
+        shutil.move(str(self.vault / "30-reusable"), custom)
         self.config["paths"] = {"reuse_dir": "知识/复用", "reuse_index": "知识/复用/index.md",
                                 "reuse_template": "知识/复用/template.md"}
         result = self.cli("search", "后台", "--cwd", str(work))
@@ -231,7 +231,7 @@ class ReuseTests(unittest.TestCase):
         self.lesson(source_branch="release")
         result = self.cli("validate")
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("10-memory/reusable/background.md", json.loads(result.stdout)["reusable_lesson_errors"])
+        self.assertIn("30-reusable/background.md", json.loads(result.stdout)["reusable_lesson_errors"])
 
     def test_retired_lessons_are_retained_but_not_candidates(self) -> None:
         lesson = self.lesson(status="retired", source_branch="missing")

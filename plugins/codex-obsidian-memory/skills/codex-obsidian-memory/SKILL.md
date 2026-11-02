@@ -1,6 +1,6 @@
 ---
 name: codex-obsidian-memory
-description: Set up, validate, troubleshoot, enable, disable, or remove Codex-to-Obsidian memory. Use when a user asks to remember or enable long-term memory for this local project without GitHub, immediately in the current conversation, or to manage GitHub scope, vault routing, hooks and routines; ordinary registered-project work is automatic.
+description: Set up, validate, troubleshoot or manage Codex-to-Obsidian memory; explicitly enable or disable memory for one ordinary conversation, register a local project, reorganize vault areas, or manage GitHub scope and hooks. Registered project memory is automatic; ordinary conversation memory defaults off.
 ---
 
 # Codex Obsidian Memory
@@ -27,6 +27,10 @@ Manage the local-first memory integration packaged with this plugin. Lifecycle h
 
 Source-level Python examples in references are developer equivalents. For users, use the platform launcher above, including for local registration, search, read and context. Hooks use the same prepared runtime and never download it. After a Hook definition update, review its new launcher command through the host's normal Hook trust flow; do not copy or fabricate trust hashes.
 
+## Ordinary conversations and root layout
+
+Read [conversations.md](references/conversations.md) when the user explicitly asks to remember or stop remembering this ordinary chat. Use its actual session ID with conversation-enable/disable; consume the returned context immediately. Preserve existing local project registrations. Do not enable chats by scanning prompt keywords. Read [migration.md](references/migration.md) for an authorized root-layout move; show the dry-run plan, preserve affected notes, then apply with the current review token and validate. New defaults are 30-reusable and 40-conversations, separate from knowledge and projects.
+
 ## Cross-project experience reuse
 
 Before substantial implementation, after failure or before changing strategy, search shared lessons first, falling back to eligible project notes; explicitly search projects when shared candidates do not apply. Use `search` and `read` on demand, check conditions and provenance, and treat historical branches as references only. Read [reuse.md](references/reuse.md) when retrieving or distilling verified lessons, adapting older vaults or handling conflicts.
@@ -39,7 +43,7 @@ Before substantial implementation, after failure or before changing strategy, se
 - For a non-default existing layout, use `--no-template` plus repeatable `--path KEY=RELATIVE_PATH` mappings, then validate.
 - Keep one folder and one project home per GitHub repository. Create a branch page only for durable branch-specific progress. Match `working_branch` case-sensitively and `github_repo` case-insensitively. Use distinct filenames for branches such as `Release` and `release` on case-insensitive filesystems.
 - Treat unresolved claims as open questions; do not retain guesses, transcripts or one-off output.
-- Hooks must stay silent outside configured GitHub scope and explicitly enabled local roots. Local projects use a stable `project_id`, not a fabricated `github_repo`. No named Git branch means progress belongs on the project home. The vault itself is the maintenance exception; explicit GitHub exclusions still apply.
+- Hooks must stay silent outside configured GitHub scope, explicitly enabled local roots and opted-in conversation IDs. Local projects use a stable `project_id`, not a fabricated `github_repo`. No named Git branch means progress belongs on the project home. The vault itself is the maintenance exception; explicit GitHub exclusions still apply.
 - Concurrent project conversations review only their own project folder. Before editing global memory or a shared lesson from a project conversation, run `claim-shared <vault-relative-path> --review-token <token-from-current-hook> --cwd <workspace>` through the launcher. If another conversation owns the note, defer that shared write. Do not edit unclaimed shared pages from a project conversation. If two conversations need to edit the same project note, coordinate their writes; file hashes do not merge text.
 - After any vault Markdown write, the final reply must contain a visible **Knowledge-base writeback review** section. Use one bullet per changed file with its vault-relative path and the concrete facts or sections added, changed or removed. A basename is accepted only when unique across the vault and changed files. Invite corrections, then append the disclosure marker followed by the review marker. The Stop hook checks file coverage and minimum descriptions, including on retries; it cannot verify factual accuracy or exhaustive semantics. Do not hide entries in quotes, comments or code fences. Do not show the section when nothing was written.
 

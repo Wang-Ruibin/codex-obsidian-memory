@@ -33,9 +33,11 @@ Most users can stop here and let Codex build the mapping. If you need to review 
 | `projects_dir` | Repository folders | `20-projects` |
 | `weekly_brief` | Weekly report | `10-memory/weekly-brief.md` |
 | `monthly_audit` | Monthly report | `10-memory/monthly-audit.md` |
-| `reuse_dir` | Shared topic directory | `10-memory/reusable` |
-| `reuse_index` | Short shared index | `10-memory/reusable/index.md` |
-| `reuse_template` | Lesson authoring template | `10-memory/reusable/template.md` |
+| `reuse_dir` | Shared topic directory | `30-reusable` |
+| `reuse_index` | Short shared index | `30-reusable/index.md` |
+| `conversations_dir` | Conversation notes | `40-conversations` |
+| `conversation_index` | Conversation index | `40-conversations/index.md` |
+| `reuse_template` | Lesson authoring template | `30-reusable/template.md` |
 
 ## Manual example
 
@@ -56,3 +58,20 @@ When a writeback review is rejected, use one bullet per changed note with a vaul
 ## Adding experience reuse
 
 Existing vaults can search without reinitialization; an absent shared area falls back to project notes. Add the index and topic at configured paths only when a verified lesson exists. Do not rerun `init` or overwrite the old protocol for this; merge retrieval and distillation rules only where needed while preserving scope and settings. See [reuse.md](reuse.md) for new paths, older branch restrictions and template-link adaptation. Other branches may be explicitly labeled historical references, never current progress.
+
+## Root-level area migration
+
+New vaults place reusable experience in `30-reusable` and conversation notes in
+`40-conversations`, beside knowledge and projects. Hooks never silently move old
+notes. When the user explicitly requests a layout change, run the read-only plan,
+check its destinations and per-file list, retain one necessary recovery point for
+affected notes/configuration, then apply and validate. Preserve owners, exclusions
+and local registrations; do not rerun init. Custom root names are supported, and
+`--conversation-index` selects the conversation index path.
+
+```bash
+sh ../../scripts/memoryctl.sh migrate-layout --reuse-dir 30-reusable --conversations-dir 40-conversations
+sh ../../scripts/memoryctl.sh migrate-layout --reuse-dir 30-reusable --conversations-dir 40-conversations --apply --review-token <current-turn-token> --cwd /absolute/workspace
+```
+
+Occupied destinations, symbolic links and another conversation’s shared-note claim stop migration. User notes are never overwritten or deleted to resolve a collision. Internal links are repaired; external URLs remain unchanged. Command failures roll back completed operations; use the retained recovery point after interruption or power loss. Disclose every moved/created note and link update from the returned file list.

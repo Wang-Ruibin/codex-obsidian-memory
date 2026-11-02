@@ -17,4 +17,4 @@ status: active
 
 ## 编写方式
 
-- [[10-memory/reusable/template|可复用经验模板]]
+- [[30-reusable/template|可复用经验模板]]

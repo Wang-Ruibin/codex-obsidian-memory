@@ -5,7 +5,7 @@ status: active
 
 # 可复用经验模板
 
-← [[10-memory/reusable/index|可复用经验索引]]
+← [[30-reusable/index|可复用经验索引]]
 
 ## 何时创建经验
 
@@ -27,7 +27,7 @@ verified_on: YYYY-MM-DD
 
 # 主题
 
-← [[10-memory/reusable/index|可复用经验索引]]
+← [[30-reusable/index|可复用经验索引]]
 
 ## 适用条件
 说明问题、环境、版本和前提。

@@ -11,10 +11,14 @@ tags:
 
 - [[10-memory/global-memory|全局记忆]]
 - [[10-memory/maintenance|记忆维护]]
-- [[10-memory/reusable/index|可复用经验索引]]
+- [[30-reusable/index|可复用经验索引]]
 
 ## 项目
 
 - [[20-projects/project-index|项目总览]]
+
+## 对话
+
+- [[40-conversations/index|对话记忆]]
 
 知识簇和项目簇刻意只共享“首页—项目总览”这一条桥。

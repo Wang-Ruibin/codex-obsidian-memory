@@ -5,7 +5,7 @@ status: active
 
 # Reusable lesson template
 
-← [[10-memory/reusable/index|Reusable experience index]]
+← [[30-reusable/index|Reusable experience index]]
 
 ## When to create a lesson
 
@@ -27,7 +27,7 @@ verified_on: YYYY-MM-DD
 
 # Topic
 
-← [[10-memory/reusable/index|Reusable experience index]]
+← [[30-reusable/index|Reusable experience index]]
 
 ## Applies when
 Describe the problem, environment, versions and prerequisites.

@@ -18,7 +18,7 @@ Keep project background, confirmed decisions and next steps in local notes for C
 Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load your global preferences, the exact project home, and the page for the branch you are on before work begins — and load them again after compaction and for subagents. When the task ends, Codex reviews whether anything durable emerged and writes it back for your review.
 
 - Memory stays in Markdown files you own. No vector database, no cloud memory service, no credentials in the vault.
-- Use selected GitHub repositories or explicitly enable a local project, including an ordinary folder without Git. Unregistered folders stay silent.
+- Use selected GitHub repositories or explicitly enable a local project, including an ordinary folder without Git. Ordinary chats stay silent unless you explicitly enable that conversation.
 - Branch pages are created when durable branch-specific progress exists, so parallel lines of work can stay separate without filling the vault with empty placeholders.
 - Only durable facts are kept — decisions, outcomes, reusable failures and next steps — never chat transcripts.
 - When this task changes its project memory or a shared lesson reserved for this task, Codex shows a **Knowledge-base writeback review** with each affected file and a plain-language summary, so you can correct it before relying on the new memory.
@@ -149,6 +149,21 @@ Codex registers the project, creates or reuses its memory page, and loads the co
 
 An ordinary folder works without Git. A local Git project can keep separate branch memories. Same-named folders remain separate projects. To pause, say “Stop automatic memory for this local project”; notes are retained. To resume, ask to enable it again. After moving a project, tell Codex to update its registered location and keep its existing memory. If you use both Windows and WSL, ask it to associate both environments with the same project memory. See the [local project reference](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/local-projects.md).
 
+## Choose memory for an ordinary conversation
+
+Ordinary chats without a GitHub project have memory off by default. To retain conclusions you will need later, say:
+
+```text
+Use $codex-obsidian-memory to enable memory for this conversation only.
+Keep confirmed goals, constraints, important decisions and next steps, not the full transcript.
+```
+
+Say “Stop memory for this conversation, but keep its notes” to turn it off, or “Resume memory for this conversation” to use the same note again. Other chats in the same folder stay off. Existing local project registrations keep their project memory.
+
+The note follows your conversation title. When you rename the chat, local background synchronization renames the file and keeps its body. Duplicate titles are distinguished automatically; special characters and long titles are adjusted to valid filenames. Each chat loads only its own note.
+
+Knowledge, projects, reusable experience and conversations have separate root-level areas. For an existing vault, say “Move reusable experience to the vault root beside knowledge and projects, and add a conversations folder.” Codex checks the migration plan, preserves notes and repairs links without reinitializing. See [conversation memory](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/conversations.md).
+
 ## Reuse experience across projects
 
 While working on project A, Codex looks for reusable experience before substantial implementation, after a failure, or before changing strategy. It searches shared topics first, then other eligible project notes when nothing matches, and checks environment, versions and sources before applying a candidate.
@@ -224,11 +239,13 @@ codex plugin remove codex-obsidian-memory@codex-obsidian-memory
 flowchart LR
     A[User prompt] --> B[Start hooks]
     C[Compaction or subagent] --> B
-    B --> D{Eligible GitHub or enabled local project?}
+    B --> D{Eligible project or opted-in conversation?}
     D -- no --> E[Stay silent]
     D -- yes --> F[Global memory]
     L[Explicit local registration in this conversation] --> F
-    F --> G[Exact project home]
+    F -- project --> G[Exact project home]
+    F -- conversation --> M[Own conversation note]
+    M --> I[Codex task]
     G --> H[Exact working_branch page]
     H --> I[Codex task]
     I --> J[Stop hook memory review]
@@ -252,7 +269,7 @@ Hooks use exact repository identity or a registered local root and project ID, n
 | Explicitly included `OWNER/REPO` | Load outside automatic owner scope |
 | Explicitly excluded `OWNER/REPO` | Stay silent |
 | Explicitly enabled local project | Load immediately on registration and automatically afterwards; use exact Git branches when available |
-| Unregistered local-only repo, another Git host or ordinary folder | Stay silent |
+| Unregistered local-only repo, another Git host or ordinary folder | Stay silent unless this conversation is explicitly enabled |
 | The vault itself | Load maintenance context |
 
 Repository identity is read with non-mutating Git commands. SSH credentials, private keys, tokens and Git configuration secrets are never read into memory.
@@ -261,7 +278,7 @@ Repository identity is read with non-mutating Git commands. SSH credentials, pri
 
 - Memory stays local: no telemetry, no remote memory service, no credential collection.
 - Every note is resolved inside the configured vault, and common secret patterns are redacted before injection.
-- Hooks stay silent in unregistered local folders and excluded repositories; local registration never overrides an explicit repository exclusion.
+- Hooks stay silent in unregistered local folders unless the current conversation is explicitly enabled. Excluded GitHub repositories remain silent; neither local nor conversation memory overrides an explicit repository exclusion.
 - Branch names are matched exactly, including case. Keep separate note filenames such as `release-upper.md` and `release-lower.md` for `Release` and `release` on filesystems that ignore filename case.
 - No command deletes or moves your vault. Uninstall stops the integration and removes the access entry added during setup; diagnostic history is kept unless you ask Codex to remove it too.
 - Scheduled audits may recommend archival, but never delete, move or archive notes on their own.

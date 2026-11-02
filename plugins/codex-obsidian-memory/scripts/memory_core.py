@@ -12,7 +12,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 
-CONFIG_VERSION = 1
+CONFIG_VERSION = 2
 REVIEW_MARKER = "<!-- obsidian-memory-reviewed -->"
 WRITEBACK_DISCLOSURE_MARKER = "<!-- obsidian-memory-writeback-disclosed -->"
 DEFAULT_PATHS = {
@@ -24,9 +24,11 @@ DEFAULT_PATHS = {
     "projects_dir": "20-projects",
     "weekly_brief": "10-memory/weekly-brief.md",
     "monthly_audit": "10-memory/monthly-audit.md",
-    "reuse_dir": "10-memory/reusable",
-    "reuse_index": "10-memory/reusable/index.md",
-    "reuse_template": "10-memory/reusable/template.md",
+    "reuse_dir": "30-reusable",
+    "reuse_index": "30-reusable/index.md",
+    "reuse_template": "30-reusable/template.md",
+    "conversations_dir": "40-conversations",
+    "conversation_index": "40-conversations/index.md",
 }
 
 
@@ -53,6 +55,11 @@ def load_config() -> dict[str, Any]:
         return {"version": CONFIG_VERSION, "enabled": False, "paths": dict(DEFAULT_PATHS)}
     document = json.loads(path.read_text(encoding="utf-8-sig"))
     paths = dict(DEFAULT_PATHS)
+    # Existing vaults keep their old optional area until an explicit migration.
+    vault = Path(document.get("vault") or ".")
+    if (vault / "10-memory/reusable").is_dir() and not (vault / "30-reusable").exists():
+        paths.update(reuse_dir="10-memory/reusable", reuse_index="10-memory/reusable/index.md",
+                     reuse_template="10-memory/reusable/template.md")
     paths.update(document.get("paths") or {})
     document["paths"] = paths
     document.setdefault("locale", "en")
@@ -186,6 +193,13 @@ def validated_paths(overrides: dict[str, str] | None = None) -> dict[str, str]:
         relative = Path(str(value))
         if relative.is_absolute() or relative.anchor or ".." in relative.parts or not str(value).strip():
             raise ValueError(f"Vault path must be a non-empty relative path: {key}")
+    for key, parent in (("reuse_index", "reuse_dir"), ("reuse_template", "reuse_dir"),
+                        ("conversation_index", "conversations_dir")):
+        if not Path(paths[key]).is_relative_to(Path(paths[parent])) or paths[key] == paths[parent]:
+            raise ValueError(f"{key} must stay inside {parent}")
+    roots = [Path(paths[key]) for key in ("projects_dir", "reuse_dir", "conversations_dir")]
+    if any(a.is_relative_to(b) or b.is_relative_to(a) for i, a in enumerate(roots) for b in roots[i + 1:]):
+        raise ValueError("Project, reusable and conversation folders must not overlap")
     return paths
 
 
@@ -310,7 +324,7 @@ def cleanup_review_snapshots(vault: Path | None = None, max_age_seconds: int = 7
 
 
 def save_review_snapshot(event: dict[str, Any], vault: Path, *, project_root: Path | None = None,
-                         owner: str = "") -> None:
+                         owner: str = "", files: tuple[Path, ...] = ()) -> None:
     path = review_snapshot_path(event)
     if path is None or path.exists():
         return
@@ -322,14 +336,16 @@ def save_review_snapshot(event: dict[str, Any], vault: Path, *, project_root: Pa
         "project_root": str(project_root.resolve()) if project_root else "",
         "registered_index": "",
         "claimed_files": {},
-        "files": markdown_snapshot(vault, roots=((project_root,) if project_root else ()) if restricted else None),
+        "scope_files": [file.resolve().relative_to(vault.resolve()).as_posix() for file in files],
+        "files": markdown_snapshot(vault, roots=((project_root,) if project_root else ()) if restricted else None,
+                                   files=files),
         "created_at": time.time(),
     }
     atomic_write(path, json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
 
 
 def review_changes(event: dict[str, Any], vault: Path, *, project_root: Path | None = None,
-                   owner: str = "") -> list[tuple[str, str]]:
+                   owner: str = "", files: tuple[Path, ...] = ()) -> list[tuple[str, str]]:
     path = review_snapshot_path(event)
     if path is None or not path.is_file():
         return []
@@ -346,8 +362,12 @@ def review_changes(event: dict[str, Any], vault: Path, *, project_root: Path | N
     if recorded_root and project_root and Path(recorded_root) != project_root.resolve():
         raise ValueError("Project home changed during this task; review its memory in the correct workspace")
     scoped = bool(owner)
-    extra_paths = []
+    extra_paths = [vault / relative for relative in payload.get("scope_files", [])] + list(files)
     claims = {str(key): value for key, value in (payload.get("claimed_files") or {}).items()}
+    # Explicit layout maintenance may update links outside the current project.
+    # These receipts are created by the reviewed migration command, not inferred
+    # from concurrent changes elsewhere in the vault.
+    claims.update(payload.get("maintenance_files") or {})
     for relative in claims:
         extra_paths.append(vault / relative)
     roots = ((project_root,) if project_root else ()) if scoped else None

@@ -40,7 +40,7 @@ class DocumentationTests(unittest.TestCase):
         for english, chinese in pairs:
             with self.subTest(document=str(english.relative_to(ROOT))):
                 self.assert_document_pair(english, chinese)
-        for name in ("automation.md", "migration.md", "security.md", "structure.md", "reuse.md", "local-projects.md", "runtime.md"):
+        for name in ("automation.md", "migration.md", "security.md", "structure.md", "reuse.md", "local-projects.md", "runtime.md", "conversations.md"):
             self.assert_document_pair(
                 SKILL / "references" / name,
                 SKILL / "references" / "zh-CN" / name,
@@ -82,7 +82,7 @@ class DocumentationTests(unittest.TestCase):
         self.assertEqual(re.findall(r"```bash\n(.*?)```", english, re.DOTALL),
                          re.findall(r"```bash\n(.*?)```", chinese, re.DOTALL))
         for locale in ("en", "zh-CN"):
-            template = (PLUGIN / f"assets/vault-template/{locale}/10-memory/reusable/template.md").read_text(encoding="utf-8")
+            template = (PLUGIN / f"assets/vault-template/{locale}/30-reusable/template.md").read_text(encoding="utf-8")
             for field in ("type: reusable-memory", "status: verified", "summary:", "keywords:",
                           "source_repo:", "source_branch:", "source_note:", "verified_on:"):
                 self.assertIn(field, template)
@@ -92,6 +92,13 @@ class DocumentationTests(unittest.TestCase):
         chinese = (SKILL / "references/zh-CN/local-projects.md").read_text(encoding="utf-8")
         self.assertEqual(re.findall(r"```bash\n(.*?)```", english, re.DOTALL),
                          re.findall(r"```bash\n(.*?)```", chinese, re.DOTALL))
+
+    def test_conversation_and_migration_commands_are_localization_aligned(self) -> None:
+        for name in ("conversations.md", "migration.md"):
+            english = (SKILL / "references" / name).read_text(encoding="utf-8")
+            chinese = (SKILL / "references/zh-CN" / name).read_text(encoding="utf-8")
+            self.assertEqual(re.findall(r"```bash\n(.*?)```", english, re.DOTALL),
+                             re.findall(r"```bash\n(.*?)```", chinese, re.DOTALL))
 
     def test_manual_scheduler_examples_pin_required_paths(self) -> None:
         references = [
@@ -115,7 +122,7 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.7.2")
+        self.assertEqual(manifest["version"], "0.8.0")
 
     def test_hooks_use_platform_runtime_launchers(self) -> None:
         plugin = json.loads((PLUGIN / "hooks/hooks.json").read_text(encoding="utf-8"))
