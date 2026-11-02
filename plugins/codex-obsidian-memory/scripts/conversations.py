@@ -128,14 +128,22 @@ def filename(title: str) -> str:
     return name + ".md"
 
 
+def same_file(first: Path, second: Path) -> bool:
+    """Compare file identity, including case-insensitive POSIX filesystems."""
+    try:
+        return os.path.samefile(first, second)
+    except OSError:
+        return False
+
+
 def destination(root: Path, title: str, value: str, old: Path | None = None) -> Path:
     occupied = {path.name.casefold(): path for path in root.iterdir()} if root.is_dir() else {}
     target = root / filename(title)
     found = occupied.get(target.name.casefold())
-    if found is not None and (old is None or found.resolve() != old.resolve()):
+    if found is not None and (found.is_symlink() or old is None or not same_file(found, old)):
         target = root / (Path(filename(title)).stem + " [" + hashlib.sha256(value.encode()).hexdigest()[:10] + "].md")
         found = occupied.get(target.name.casefold())
-    if found is not None and (old is None or found.resolve() != old.resolve()):
+    if found is not None and (found.is_symlink() or old is None or not same_file(found, old)):
         raise ValueError("The conversation filename is occupied; no file was overwritten")
     return target
 
@@ -267,8 +275,8 @@ def change_title(value: str, title: str, vault: Path, config: dict[str, Any],
     writes = {target: text, index: body}
     entry["pending_review"].append(index.relative_to(vault).as_posix())
     removed = {old: original} if old_relative != new_relative else {}
-    if old_relative != new_relative and old.resolve() == target.resolve():
-        # A case-only rename on Windows needs a temporary filename.
+    if old_relative != new_relative and same_file(old, target):
+        # Case-only renames on Windows and default macOS filesystems need a temporary name.
         temporary = old.with_name(".case-" + hashlib.sha256(value.encode()).hexdigest() + ".tmp")
         if temporary.exists():
             raise ValueError("An interrupted case rename needs recovery before continuing")
