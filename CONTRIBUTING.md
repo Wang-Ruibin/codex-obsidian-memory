@@ -22,6 +22,8 @@ Tell me the results and anything that failed.
 
 The standalone Skill is self-contained at `skills/codex-obsidian-memory-skill`. Its shared runtime, launchers and common templates are generated from the plugin's canonical files by `python scripts/build_skill.py`; commit the generated files with their source changes. Its entrypoint, instructions, references and vault protocols are maintained directly in the Skill folder. The unit suite checks bundle freshness and executes an isolated copy without installing it into a real Codex profile. Never add Hook manifests, schedulers or title watchers to this edition.
 
+Both editions use the same release version. Change it only in `plugins/codex-obsidian-memory/.codex-plugin/plugin.json`, then regenerate the Skill so `bundle.json` inherits it. Publish both editions for the same release; report an older local installation separately.
+
 ## Ground rules
 
 - Keep vault operations additive unless a user explicitly approves replacing a reviewed template.

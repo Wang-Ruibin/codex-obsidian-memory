@@ -22,6 +22,8 @@ python scripts/build_skill.py --check
 
 纯 Skill 版自包含目录为 `skills/codex-obsidian-memory-skill`。共享运行代码、启动器和通用模板由 `python scripts/build_skill.py` 从插件规范源生成，源文件和生成文件应在同一次修改中提交。入口、Skill 指引、参考资料和知识库协议直接在 Skill 文件夹维护。单元测试检查生成包是否最新，并执行隔离副本，不安装到真实 Codex 配置。此版本不得加入 Hook 清单、调度器或标题后台监听。
 
+两版共用一个发布版本号。只在 `plugins/codex-obsidian-memory/.codex-plugin/plugin.json` 修改版本，再重新生成 Skill，使 `bundle.json` 自动继承；同一次发行同步提供两版。本机尚未更新的安装版本另行说明。
+
 ## 基本规则
 
 - 除非用户明确批准替换已审阅模板，否则知识库操作保持增量式。

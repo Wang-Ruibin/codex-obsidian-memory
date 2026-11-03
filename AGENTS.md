@@ -10,5 +10,6 @@ This repository publishes a Hook-based Codex plugin at `plugins/codex-obsidian-m
 - Keep paired explanatory-document headings, commands, warnings and links structurally aligned.
 - Update tests, README behavior and Skill references together when commands or layouts change.
 - Shared routing/retrieval libraries in the standalone Skill are generated from the plugin by `python scripts/build_skill.py`. Edit the canonical plugin modules, regenerate, and check with `--check`; do not maintain a divergent runtime copy.
+- Both editions share one release version. The plugin manifest is its canonical source; the generated Skill bundle inherits it. Bump and publish both together, and distinguish release version from the version currently installed on a user's machine.
 - Keep the standalone Skill free of Hook definitions, schedulers, background workers and automatic global configuration changes. Its profile is separate from the Hook integration. Do not install or replace either edition on this machine unless the user requests it.
 - Run the unit suite, localization parity checks, plugin validator and Skill validator before release.

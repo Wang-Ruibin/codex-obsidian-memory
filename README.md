@@ -30,6 +30,8 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 
 ## Choose an edition
 
+The Hook plugin and standalone Skill share one release version and advance together. Choose the edition by how you want memory to run. A local installation can remain on an older release until you update it.
+
 | | Hook plugin | Standalone Skill |
 |---|---|---|
 | Best fit | Automatic memory during normal project work | Memory through a Skill without lifecycle hooks |
