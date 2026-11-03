@@ -1,0 +1,18 @@
+{
+  "search": "-file:\"AGENTS.md\"",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": true,
+  "showOrphans": false,
+  "colorGroups": [
+    {"query": "file:\"00-memory-home\"", "color": {"a": 1, "rgb": 10053171}},
+    {"query": "file:\"project-index\"", "color": {"a": 1, "rgb": 16753920}},
+    {"query": "path:\"20-projects\"", "color": {"a": 1, "rgb": 5025616}},
+    {"query": "path:\"10-memory\"", "color": {"a": 1, "rgb": 4243391}}
+  ],
+  "showArrow": true,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1,
+  "linkStrength": 1,
+  "linkDistance": 180
+}

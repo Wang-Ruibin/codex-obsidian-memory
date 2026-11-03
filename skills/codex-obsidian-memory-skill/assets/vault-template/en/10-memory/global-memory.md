@@ -1,0 +1,25 @@
+---
+type: global-memory
+status: active
+tags:
+  - graph/knowledge
+---
+
+# Global memory
+
+← [[00-memory-home|Memory home]]
+
+Keep only facts that apply across repositories.
+
+## Stable preferences
+
+- None recorded yet.
+
+## Cross-project decisions
+
+- One GitHub repository or explicitly registered local project ID owns one project folder and one project home.
+- Branch-specific progress belongs on an exact `working_branch` page.
+
+## Reusable failure lessons
+
+Use [[30-reusable/index|Reusable experience index]] for detailed methods and failures. Keep stable preferences here; do not duplicate lesson bodies.

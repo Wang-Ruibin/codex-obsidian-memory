@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "codex-obsidian-memory"
 SKILL = PLUGIN / "skills" / "codex-obsidian-memory"
+STANDALONE = ROOT / "skills" / "codex-obsidian-memory-skill"
 
 
 def heading_levels(path: Path) -> list[int]:
@@ -36,6 +37,10 @@ class DocumentationTests(unittest.TestCase):
             (ROOT / "docs" / "case-study.md", ROOT / "docs" / "zh-CN" / "case-study.md"),
             (ROOT / "docs" / "adoption-verification.md", ROOT / "docs" / "zh-CN" / "adoption-verification.md"),
             (SKILL / "SKILL.md", SKILL / "SKILL.zh-CN.md"),
+            (ROOT / "docs/skill-only.md", ROOT / "docs/zh-CN/skill-only.md"),
+            (STANDALONE / "SKILL.md", STANDALONE / "SKILL.zh-CN.md"),
+            (STANDALONE / "references/usage.md", STANDALONE / "references/zh-CN/usage.md"),
+            (STANDALONE / "assets/vault-template/en/AGENTS.md", STANDALONE / "assets/vault-template/zh-CN/AGENTS.md"),
         ]
         for english, chinese in pairs:
             with self.subTest(document=str(english.relative_to(ROOT))):
@@ -122,7 +127,13 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.8.1")
+        self.assertEqual(manifest["version"], "0.9.0")
+
+    def test_standalone_command_examples_are_localization_aligned(self) -> None:
+        english = (STANDALONE / "references/usage.md").read_text(encoding="utf-8")
+        chinese = (STANDALONE / "references/zh-CN/usage.md").read_text(encoding="utf-8")
+        self.assertEqual(re.findall(r"```bash\n(.*?)```", english, re.DOTALL),
+                         re.findall(r"```bash\n(.*?)```", chinese, re.DOTALL))
 
     def test_hooks_use_platform_runtime_launchers(self) -> None:
         plugin = json.loads((PLUGIN / "hooks/hooks.json").read_text(encoding="utf-8"))

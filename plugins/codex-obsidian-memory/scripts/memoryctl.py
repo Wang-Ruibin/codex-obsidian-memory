@@ -271,7 +271,7 @@ def command_validate(_: argparse.Namespace) -> int:
 
 
 def command_retrieval(args: argparse.Namespace) -> int:
-    from hook import resolve_scope
+    from memory_context import resolve_scope
     from reuse_memory import read_reference, search
 
     config = load_config()
@@ -288,7 +288,7 @@ def command_retrieval(args: argparse.Namespace) -> int:
         from conversations import own_text
         from memory_core import redact_secrets
         if args.command == "context":
-            from hook import build_context
+            from memory_context import build_context
             result = {"context": build_context(scope, config, vault)}
         else:
             # Ordinary chat notes never become a global searchable chat catalog.
@@ -311,7 +311,7 @@ def command_retrieval(args: argparse.Namespace) -> int:
     if args.command == "search":
         result = search(vault, config, args.query, args.scope, args.limit)
     elif args.command == "context":
-        from hook import build_context
+        from memory_context import build_context
         result = {"context": build_context(scope, config, vault)}
     else:
         result = read_reference(vault, config, args.path, args.start_line, args.line_count)
@@ -320,7 +320,7 @@ def command_retrieval(args: argparse.Namespace) -> int:
 
 
 def command_claim_shared(args: argparse.Namespace) -> int:
-    from hook import resolve_scope
+    from memory_context import resolve_scope
 
     config = load_config()
     if not config.get("enabled") or not config.get("vault"):

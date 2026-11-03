@@ -62,10 +62,19 @@ class LocalProjectTests(unittest.TestCase):
         self.assertEqual(self.config()["scope_mode"], "local-only")
         self.assertEqual(self.config()["github_owners"], [])
         self.assertEqual(self.cli("validate").returncode, 0)
-        with patch("memory_core.git_value", return_value=""), patch.object(hook, "repository_identity", return_value=("", "")):
+        with patch("memory_core.git_value", return_value=""), patch("memory_context.repository_identity", return_value=("", "")):
             self.assertFalse(hook.resolve_scope({"cwd": str(self.workspace)}, self.config(), self.vault).eligible)
         self.assertNotEqual(self.cli("init", "--local-only", "--github-owner", "Example", "--vault",
                                      str(self.root / "invalid"), "--no-writable-root").returncode, 0)
+
+    def test_stale_review_cannot_clear_new_local_registration_receipts(self) -> None:
+        entry = self.register()["project"]
+        pending = list(entry["pending_review"])
+        with patch.dict(os.environ, {"CODEX_OBSIDIAN_MEMORY_CONFIG": str(self.config_file)}):
+            self.assertFalse(local_projects.clear_local_review(entry["project_id"], []))
+            self.assertEqual(self.config()["local_projects"][0]["pending_review"], pending)
+            self.assertTrue(local_projects.clear_local_review(entry["project_id"], pending))
+            self.assertNotIn("pending_review", self.config()["local_projects"][0])
 
     def test_registration_and_current_context_work_without_git_executable(self) -> None:
         args = Namespace(command="local-register", path=self.workspace, name="No Git", project_id=None)

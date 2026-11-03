@@ -172,19 +172,22 @@ def acquire_lock(path: Path, busy_message: str, wait_seconds: float = 10) -> int
             time.sleep(0.05)
 
 
-def clear_local_review(identity: str) -> None:
+def clear_local_review(identity: str, expected: list[str] | None = None) -> bool:
     lock = config_path().with_suffix(".local-projects.lock")
     try:
         fd = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     except FileExistsError:
-        return  # Keep the receipt for the next review; do not overwrite another updater.
+        return False  # Keep the receipt for the next review; do not overwrite another updater.
     try:
         os.close(fd)
         config = load_config()
         entry = registered_project(config, identity)
+        if expected is not None and set((entry or {}).get("pending_review", [])) != set(expected):
+            return False
         if entry and entry.get("pending_review"):
             entry.pop("pending_review")
             commit_registration(config, {})
+        return True
     finally:
         lock.unlink(missing_ok=True)
 
@@ -290,7 +293,7 @@ def update_local_locked(args: Any, config: dict[str, Any], vault: Path) -> int:
               "note": ("Effective now in this conversation. Use the returned context immediately and review memory at this task's end."
                        if entry["enabled"] else "Local memory is disabled. Existing notes and project identity are retained.")}
     if args.command in {"local-register", "local-enable", "local-move"} and entry["enabled"]:
-        from hook import build_context, resolve_scope
+        from memory_context import build_context, resolve_scope
         scope = resolve_scope({"cwd": entry["root"]}, config, vault)
         result["context"] = build_context(scope, config, vault) if scope.eligible else ""
     print(json.dumps(result, ensure_ascii=True, indent=2))
@@ -361,7 +364,7 @@ def command_register_github(args: Any) -> int:
     finally:
         lock.unlink(missing_ok=True)
     # Context loading may be slow on Windows; it does not need the index lock.
-    from hook import build_context, resolve_scope
+    from memory_context import build_context, resolve_scope
     scope = resolve_scope({"cwd": str(root)}, config, vault)
     result = {"repository": repository, "project_home": home.relative_to(vault).as_posix(),
               "changed_notes": changed, "context": build_context(scope, config, vault)}

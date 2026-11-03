@@ -9,6 +9,8 @@ Simplified Chinese translation: [SKILL.zh-CN.md](SKILL.zh-CN.md).
 
 Manage the local-first memory integration packaged with this plugin. Lifecycle hooks handle ordinary project tasks without explicit Skill invocation.
 
+This is the Hook edition. Users who want a standalone Skill can choose the separate `skills/codex-obsidian-memory-skill` distribution described in the repository README. It uses explicit task start/finish calls and its own profile. Do not install it over an existing Hook setup unless the user requests that switch.
+
 ## Choose the operation
 
 - Before setup, automatically run `sh ../../scripts/memoryctl.sh prepare-runtime` on macOS/Linux, or `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.ps1 -Action prepare-runtime` on Windows. Reuse a compatible Python or prepare the plugin's private runtime. Do not ask the user to install Python/pip or configure PATH. See [runtime.md](references/runtime.md) for supported platforms and troubleshooting.

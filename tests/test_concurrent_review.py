@@ -60,7 +60,7 @@ class ConcurrentReviewTests(unittest.TestCase):
     def call_hook(self, event):
         mapping = {self.work_a: ("Example/alpha", "main"), self.work_b: ("Example/beta", "main")}
         with (patch.dict(os.environ, {"CODEX_OBSIDIAN_MEMORY_CONFIG": str(self.config_path)}),
-              patch.object(hook, "repository_identity", side_effect=lambda cwd: mapping[Path(cwd)]),
+              patch("memory_context.repository_identity", side_effect=lambda cwd: mapping[Path(cwd)]),
               patch.object(hook, "load_event", return_value=event),
               patch.object(hook, "load_config", return_value=self.config),
               patch.object(sys, "stdout", new_callable=StringIO) as output):
@@ -262,7 +262,7 @@ class ConcurrentReviewTests(unittest.TestCase):
         lock = self.vault / ".codex-obsidian-memory/registration.lock"
         with patch.dict(os.environ, {"CODEX_OBSIDIAN_MEMORY_CONFIG": str(self.config_path)}):
             save_review_snapshot(event, self.vault, owner="example/slow-context")
-            with (patch.object(hook, "build_context", side_effect=lambda *_: self.assertFalse(lock.exists()) or "ready"),
+            with (patch("memory_context.build_context", side_effect=lambda *_: self.assertFalse(lock.exists()) or "ready"),
                   patch.object(sys, "stdout", new_callable=StringIO) as output):
                 self.assertEqual(local_projects.command_register_github(
                     Namespace(cwd=work, review_token=review_snapshot_path(event).stem)), 0)

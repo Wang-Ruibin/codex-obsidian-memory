@@ -4,6 +4,8 @@
 
 管理本插件提供的本地优先长期记忆集成。普通项目任务由生命周期 Hook 自动处理，无需显式调用本 Skill。
 
+这是 Hook 版。希望使用独立 Skill 的用户可选择仓库 README 介绍的 `skills/codex-obsidian-memory-skill`，通过显式开始、结束任务工作，使用独立配置。用户未要求切换时，不覆盖现有 Hook 安装。
+
 ## 选择操作
 
 - 设置前自动准备：macOS/Linux 执行 `sh ../../scripts/memoryctl.sh prepare-runtime`；Windows 执行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ../../scripts/memoryctl.ps1 -Action prepare-runtime`。复用合适的 Python 或准备插件私有环境，不要求用户手动安装 Python/pip 或配置 PATH。支持平台和排错见[运行环境参考](references/zh-CN/runtime.md)。

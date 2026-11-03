@@ -151,13 +151,13 @@ github_repo: Example/demo
     def test_scope_matrix(self) -> None:
         cwd = Path(self.temporary.name) / "work"
         cwd.mkdir()
-        with patch.object(hook, "repository_identity", return_value=("Example/demo", "main")):
+        with patch("memory_context.repository_identity", return_value=("Example/demo", "main")):
             self.assertTrue(hook.resolve_scope({"cwd": str(cwd)}, self.config, self.vault).eligible)
-        with patch.object(hook, "repository_identity", return_value=("Example/excluded", "main")):
+        with patch("memory_context.repository_identity", return_value=("Example/excluded", "main")):
             self.assertFalse(hook.resolve_scope({"cwd": str(cwd)}, self.config, self.vault).eligible)
-        with patch.object(hook, "repository_identity", return_value=("Other/demo", "main")):
+        with patch("memory_context.repository_identity", return_value=("Other/demo", "main")):
             self.assertFalse(hook.resolve_scope({"cwd": str(cwd)}, self.config, self.vault).eligible)
-        with patch.object(hook, "repository_identity", return_value=("", "")):
+        with patch("memory_context.repository_identity", return_value=("", "")):
             self.assertFalse(hook.resolve_scope({"cwd": str(cwd)}, self.config, self.vault).eligible)
         self.assertEqual(hook.resolve_scope({"cwd": str(self.vault)}, self.config, self.vault).kind, "vault")
 

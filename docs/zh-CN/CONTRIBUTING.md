@@ -10,6 +10,7 @@
 git clone git@github.com:Wang-Ruibin/codex-obsidian-memory.git
 cd codex-obsidian-memory
 python -m unittest discover -s tests -v
+python scripts/build_skill.py --check
 ```
 
 运行时使用 Python 3.11+，只依赖标准库，无需安装任何依赖。更喜欢对话方式？把仓库交给你的 agent：
@@ -18,6 +19,8 @@ python -m unittest discover -s tests -v
 在本地准备好 codex-obsidian-memory 仓库并运行它的测试套件。
 告诉我结果，以及是否有失败项。
 ```
+
+纯 Skill 版自包含目录为 `skills/codex-obsidian-memory-skill`。共享运行代码、启动器和通用模板由 `python scripts/build_skill.py` 从插件规范源生成，源文件和生成文件应在同一次修改中提交。入口、Skill 指引、参考资料和知识库协议直接在 Skill 文件夹维护。单元测试检查生成包是否最新，并执行隔离副本，不安装到真实 Codex 配置。此版本不得加入 Hook 清单、调度器或标题后台监听。
 
 ## 基本规则
 

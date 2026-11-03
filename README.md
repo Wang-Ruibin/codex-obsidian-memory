@@ -9,13 +9,13 @@ Keep project background, confirmed decisions and next steps in local notes for C
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-**English** · [简体中文](README.zh-CN.md) · [Get started](#from-installation-to-first-memory) · [Documentation](#documentation) · [Security](SECURITY.md)
+**English** · [简体中文](README.zh-CN.md) · [Choose an edition](#choose-an-edition) · [Get started](#from-installation-to-first-memory) · [Documentation](#documentation) · [Security](SECURITY.md)
 
 </div>
 
 ## What it can do for you
 
-Codex Obsidian Memory turns a plain Markdown vault into durable project context. Lifecycle hooks load your global preferences, the exact project home, and the page for the branch you are on before work begins — and load them again after compaction and for subagents. When the task ends, Codex reviews whether anything durable emerged and writes it back for your review.
+Codex Obsidian Memory turns a plain Markdown vault into durable project context. Choose the Hook plugin to load memory automatically before work, after compaction and for subagents, with a task-end review check. Or choose the standalone Skill to load, search and review memory when the Skill is invoked. Both use the same project identities, branch routing and note structure.
 
 - Memory stays in Markdown files you own. No vector database, no cloud memory service, no credentials in the vault.
 - Use selected GitHub repositories or explicitly enable a local project, including an ordinary folder without Git. Ordinary chats stay silent unless you explicitly enable that conversation.
@@ -26,7 +26,31 @@ Codex Obsidian Memory turns a plain Markdown vault into durable project context.
 - The runtime uses only the Python standard library.
 
 > [!IMPORTANT]
-> This is an early public release. Back up an existing vault and review every command in `/hooks` before trusting it.
+> This is an early public release. Preserve an existing vault before setup. For the Hook edition, review every command in `/hooks` before trusting it.
+
+## Choose an edition
+
+| | Hook plugin | Standalone Skill |
+|---|---|---|
+| Best fit | Automatic memory during normal project work | Memory through a Skill without lifecycle hooks |
+| Start and recovery | Hooks load context before work and after compaction | The invoked Skill starts or resumes a memory task |
+| Writeback review | Stop hook checks per-file disclosure | The Skill explicitly checks a review draft; no host Stop gate |
+| Chat title changes | Local background synchronization | Synchronize when the Skill runs or you request it |
+| Installation | Codex plugin marketplace | A self-contained Skill folder; no plugin installation |
+
+Both support GitHub scope, explicitly registered local projects, default-off per-chat memory and local Markdown. The Skill does not install Hooks, schedulers or global instructions, and has a separate configuration. Automatic Skill selection depends on the model; mention `$codex-obsidian-memory-skill` when you want to ensure it is used. Do not use both editions to write the same task.
+
+To choose the standalone Skill, send this to Codex:
+
+```text
+Use $skill-installer to install only skills/codex-obsidian-memory-skill from
+https://github.com/Wang-Ruibin/codex-obsidian-memory. Do not install the Hook plugin
+or change an existing memory installation. Then use $codex-obsidian-memory-skill
+to check its status, prepare its private runtime if needed, and help me choose a
+vault and project scope. Preserve any existing vault layout.
+```
+
+Continue with the [standalone Skill guide](docs/skill-only.md). The steps below describe the Hook plugin; existing Hook users can keep their current installation.
 
 ## From installation to first memory
 
@@ -303,6 +327,7 @@ Read [SECURITY.md](SECURITY.md) for the full policy.
 
 ## Documentation
 
+- [Standalone Skill guide](docs/skill-only.md)
 - [Migration guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/migration.md)
 - [Automation guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/automation.md)
 - [Security policy](SECURITY.md)

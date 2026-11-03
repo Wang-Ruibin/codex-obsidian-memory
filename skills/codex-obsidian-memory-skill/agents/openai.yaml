@@ -1,0 +1,3 @@
+interface:
+  display_name: "Obsidian Memory · Skill Only"
+  short_description: "Local project memory without lifecycle hooks"

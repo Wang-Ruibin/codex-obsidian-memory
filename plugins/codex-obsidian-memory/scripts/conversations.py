@@ -385,7 +385,7 @@ def command(args: Any) -> int:
                 target = destination(root, title, value)
                 create_note(value, title, target, vault, config, state)
             entry = state["entries"][value]
-    from hook import build_context, resolve_scope
+    from memory_context import build_context, resolve_scope
     context = build_context(resolve_scope({"cwd": str(args.cwd), "session_id": value}, config, vault), config, vault)
     warning = ""
     try:
@@ -420,6 +420,8 @@ def create_note(value: str, title: str, target: Path, vault: Path, config: dict[
 
 
 def ensure_watcher(*, force: bool = False) -> None:
+    if load_config().get("integration_mode") == "skill":
+        return  # Standalone Skills synchronize explicitly; never start a worker.
     if os.environ.get("CODEX_OBSIDIAN_NO_WATCHER") == "1" or not any(e.get("title_sync", True) for e in load_state()["entries"].values()):
         return
     marker = integration_dir() / "conversation-watcher.lock"

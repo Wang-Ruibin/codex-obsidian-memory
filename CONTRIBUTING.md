@@ -10,6 +10,7 @@ Thanks for helping improve Codex Obsidian Memory. The whole workflow below can b
 git clone git@github.com:Wang-Ruibin/codex-obsidian-memory.git
 cd codex-obsidian-memory
 python -m unittest discover -s tests -v
+python scripts/build_skill.py --check
 ```
 
 The runtime uses Python 3.11+ and the standard library only, so there is nothing to install. Prefer conversation? Hand the repository to your agent:
@@ -18,6 +19,8 @@ The runtime uses Python 3.11+ and the standard library only, so there is nothing
 Set up the codex-obsidian-memory repository locally and run its test suite.
 Tell me the results and anything that failed.
 ```
+
+The standalone Skill is self-contained at `skills/codex-obsidian-memory-skill`. Its shared runtime, launchers and common templates are generated from the plugin's canonical files by `python scripts/build_skill.py`; commit the generated files with their source changes. Its entrypoint, instructions, references and vault protocols are maintained directly in the Skill folder. The unit suite checks bundle freshness and executes an isolated copy without installing it into a real Codex profile. Never add Hook manifests, schedulers or title watchers to this edition.
 
 ## Ground rules
 

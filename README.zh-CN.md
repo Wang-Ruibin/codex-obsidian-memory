@@ -9,13 +9,13 @@
 [![CI](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Wang-Ruibin/codex-obsidian-memory/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-[English](README.md) · **简体中文** · [开始使用](#从安装到第一段记忆) · [使用文档](#使用文档) · [安全策略](docs/zh-CN/SECURITY.md)
+[English](README.md) · **简体中文** · [选择版本](#选择版本) · [开始使用](#从安装到第一段记忆) · [使用文档](#使用文档) · [安全策略](docs/zh-CN/SECURITY.md)
 
 </div>
 
 ## 它能为你做什么
 
-Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。生命周期 Hook 会在开始工作前加载你的全局偏好、精确的项目主页和当前分支对应的页面，并在上下文压缩和子 agent 启动后重新加载。任务结束时，Codex 会审查是否产生了值得长期保留的内容，并把回写结果交给你确认。
+Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。选择 Hook 插件版，可在工作前、上下文压缩后和子 agent 启动时自动加载，并在结束前检查回写审查。也可选择独立的纯 Skill 版，在调用 Skill 时加载、检索和审查记忆。两版使用相同的项目身份、分支路由和笔记结构。
 
 - 记忆保存在你拥有的 Markdown 文件中。无需向量数据库，无需云端记忆服务，知识库中也不保存凭据。
 - 可以使用选定的 GitHub 仓库，也可以明确启用本地项目，包括没有 Git 的普通文件夹；普通对话默认静默，只有明确开启该对话后才记忆。
@@ -26,7 +26,31 @@ Codex Obsidian Memory 将普通 Markdown 知识库变成持久项目上下文。
 - 运行时代码只使用 Python 标准库。
 
 > [!IMPORTANT]
-> 当前是早期公开版本。迁移现有知识库前请先备份，并在信任前通过 `/hooks` 审阅每条命令。
+> 当前是早期公开版本。配置前保留已有知识库；Hook 版在信任前还需通过 `/hooks` 审阅每条命令。
+
+## 选择版本
+
+| | Hook 插件版 | 纯 Skill 版 |
+|---|---|---|
+| 适合 | 普通项目工作中自动使用记忆 | 通过 Skill 使用记忆，无需生命周期 Hook |
+| 开始与恢复 | Hook 在工作前、压缩后加载上下文 | 调用 Skill 后开始或恢复记忆任务 |
+| 回写审查 | Stop Hook 检查逐文件披露 | Skill 显式检查审查草稿，没有宿主 Stop 拦截 |
+| 对话标题变化 | 本地后台同步 | Skill 执行时或明确要求时同步 |
+| 安装 | Codex 插件市场 | 自包含 Skill 文件夹，无需安装插件 |
+
+两版都支持 GitHub 范围、明确登记的本地项目、默认关闭的单对话记忆和本地 Markdown。纯 Skill 版不安装 Hook、调度任务或全局指导，配置独立。Skill 是否被自动选择取决于模型；希望确保使用时，直接提及 `$codex-obsidian-memory-skill`。同一任务不要同时用两版回写。
+
+选择纯 Skill 版时，把下面这段发给 Codex：
+
+```text
+请用 $skill-installer 只安装
+https://github.com/Wang-Ruibin/codex-obsidian-memory 中的
+skills/codex-obsidian-memory-skill。不要安装 Hook 插件或修改现有记忆安装。
+然后用 $codex-obsidian-memory-skill 检查状态，必要时准备私有运行时，
+帮助我选择知识库和项目范围，保留已有知识库布局。
+```
+
+后续使用见[纯 Skill 版指南](docs/zh-CN/skill-only.md)。下方步骤介绍 Hook 插件版；已有 Hook 用户可以继续原安装。
 
 ## 从安装到第一段记忆
 
@@ -298,6 +322,7 @@ Hook 依据精确仓库身份，或已登记的本地根目录和项目 ID 决�
 
 ## 使用文档
 
+- [纯 Skill 版指南](docs/zh-CN/skill-only.md)
 - [迁移指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/migration.md)
 - [自动化指南](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/zh-CN/automation.md)
 - [安全策略](docs/zh-CN/SECURITY.md)

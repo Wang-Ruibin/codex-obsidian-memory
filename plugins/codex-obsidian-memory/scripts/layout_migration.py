@@ -235,7 +235,7 @@ def command(args: Any) -> int:
     if args.apply:
         owner = ""
         if args.review_token:
-            from hook import resolve_scope
+            from memory_context import resolve_scope
             scope = resolve_scope({"cwd": str(args.cwd.resolve()),
                                    "session_id": args.session_id or os.environ.get("CODEX_THREAD_ID", "")}, config, planned["vault"])
             owner = scope.owner

@@ -1,0 +1,204 @@
+from __future__ import annotations
+
+import json
+import os
+import re
+import sys
+from collections import defaultdict
+from pathlib import Path
+
+from memory_core import frontmatter_value, load_config, note_identity, vault_path
+from local_projects import find_local_home, local_registry
+from reuse_memory import lesson_errors, note_paths, project_notes, read_text
+
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
+def markdown_files(vault: Path) -> list[Path]:
+    return sorted(
+        (
+            path
+            for path in vault.rglob("*.md")
+            if not any(part.startswith(".") for part in path.relative_to(vault).parts)
+        ),
+        key=lambda path: str(path).casefold(),
+    )
+
+
+def graph_report(vault: Path, files: list[Path]) -> dict[str, object]:
+    visible = [path for path in files if path.name.casefold() != "agents.md"]
+    by_relative = {
+        path.relative_to(vault).with_suffix("").as_posix().casefold(): path for path in visible
+    }
+    by_stem: dict[str, list[Path]] = defaultdict(list)
+    for path in visible:
+        by_stem[path.stem.casefold()].append(path)
+    degree = {path: 0 for path in visible}
+    broken: list[str] = []
+    for source in visible:
+        text = re.sub(
+            r"```.*?```", "", source.read_text(encoding="utf-8"), flags=re.DOTALL
+        )
+        for match in re.finditer(r"\[\[([^|\]#]+)", text):
+            link = match.group(1).strip()
+            if "<" in link or ">" in link:
+                continue
+            clean_link = re.sub(r"\.md$", "", link, flags=re.IGNORECASE).replace("\\", "/")
+            key = os.path.normpath(clean_link).replace("\\", "/").casefold()
+            target = None
+            if "/" in link or "\\" in link:
+                target = by_relative.get(key)
+                if target is None:
+                    local_key = os.path.normpath(
+                        (source.parent.relative_to(vault) / clean_link).as_posix()
+                    ).replace("\\", "/").casefold()
+                    target = by_relative.get(local_key)
+            else:
+                local_key = (source.parent.relative_to(vault) / key).as_posix().casefold()
+                target = by_relative.get(local_key)
+                if target is None and len(by_stem[key]) == 1:
+                    target = by_stem[key][0]
+            if target is None:
+                broken.append(f"{source.relative_to(vault)} -> {link}")
+                continue
+            degree[source] += 1
+            degree[target] += 1
+    return {
+        "visible_nodes": len(visible),
+        "broken_links": broken,
+        "orphans": [str(path.relative_to(vault)) for path, count in degree.items() if count == 0],
+    }
+
+
+def main() -> int:
+    config = load_config()
+    vault_text = str(config.get("vault") or "")
+    if not vault_text:
+        print(json.dumps({"error": "Integration is not configured."}, indent=2))
+        return 1
+    vault = Path(vault_text).resolve()
+    if not vault.is_dir():
+        print(json.dumps({"error": f"Vault not found: {vault}"}, indent=2))
+        return 1
+
+    required = ["home", "global_memory", "maintenance", "template", "project_index"]
+    missing = [key for key in required if not vault_path(vault, config, key).is_file()]
+    files = markdown_files(vault)
+    projects_dir = vault_path(vault, config, "projects_dir")
+    project_homes: dict[str, list[str]] = defaultdict(list)
+    branch_identities: dict[tuple[str, str], list[str]] = defaultdict(list)
+    identity_errors = []
+    for path in files:
+        try:
+            path.relative_to(projects_dir)
+        except ValueError:
+            continue
+        text = path.read_text(encoding="utf-8")
+        page_type = frontmatter_value(text, "type").casefold()
+        repository = note_identity(text)
+        declares_identity = (frontmatter_value(text, "project_id") or frontmatter_value(text, "github_repo")
+                             or frontmatter_value(text, "source_kind") == "local")
+        # Legacy anonymous pages remain unindexed, as before local-project support.
+        if page_type in {"project", "branch"} and declares_identity and not repository:
+            identity_errors.append(f"{path.relative_to(vault)}: expected one github_repo or local project_id")
+        if page_type == "project" and repository:
+            project_homes[repository.casefold()].append(str(path.relative_to(vault)))
+        elif page_type == "branch" and repository:
+            branch = frontmatter_value(text, "working_branch")
+            if branch:
+                branch_identities[(repository.casefold(), branch)].append(
+                    str(path.relative_to(vault))
+                )
+
+    duplicate_projects = {
+        repository: paths for repository, paths in project_homes.items() if len(paths) > 1
+    }
+    duplicate_branches = {
+        f"{repository}:{branch}": paths
+        for (repository, branch), paths in branch_identities.items()
+        if len(paths) > 1
+    }
+    conversation_notes = defaultdict(list)
+    conversation_errors = []
+    conversations_dir = vault_path(vault, config, "conversations_dir")
+    for path in files:
+        if not path.is_relative_to(conversations_dir):
+            continue
+        text = path.read_text(encoding="utf-8")
+        if frontmatter_value(text, "type") != "conversation":
+            continue
+        identity = frontmatter_value(text, "conversation_id")
+        if not re.fullmatch(r"codex:[A-Za-z0-9][A-Za-z0-9_-]{0,127}", identity):
+            conversation_errors.append(f"{path.relative_to(vault)}: invalid conversation identity")
+        else:
+            conversation_notes[identity].append(path.relative_to(vault).as_posix())
+    for identity, paths in conversation_notes.items():
+        if len(paths) > 1:
+            conversation_errors.append(f"{identity}: duplicate conversation notes")
+    try:
+        from conversations import load_state, note_path, own_text
+        for value, entry in load_state()["entries"].items():
+            if entry["enabled"]:
+                own_text(note_path(vault, config, entry), value)
+    except (OSError, ValueError) as exc:
+        conversation_errors.append(str(exc))
+    local_errors = []
+    try:
+        for entry in local_registry(config):
+            if entry["enabled"] and find_local_home(vault, config, entry) is None:
+                local_errors.append(f"{entry['project_id']}: project home missing")
+    except (OSError, ValueError) as exc:
+        local_errors.append(str(exc))
+    graph = graph_report(vault, files)
+    sources = ({note.path.relative_to(vault).as_posix(): note for note in project_notes(vault, config)}
+               if not local_errors else {})
+    reuse_errors = {}
+    reusable_lessons = 0
+    for path in note_paths(vault, vault_path(vault, config, "reuse_dir")):
+        text = read_text(path)
+        if text is None or frontmatter_value(text, "type") != "reusable-memory":
+            continue
+        if frontmatter_value(text, "status") == "retired":
+            continue
+        reusable_lessons += 1
+        errors = lesson_errors(text, vault, sources)
+        if errors:
+            reuse_errors[path.relative_to(vault).as_posix()] = errors
+    report = {
+        "vault": str(vault),
+        "required_files_missing": missing,
+        "project_homes": sum(len(paths) for paths in project_homes.values()),
+        "branch_pages": sum(len(paths) for paths in branch_identities.values()),
+        "duplicate_project_homes": duplicate_projects,
+        "duplicate_branch_identities": duplicate_branches,
+        "project_identity_errors": identity_errors,
+        "local_registration_errors": local_errors,
+        "conversation_notes": sum(len(paths) for paths in conversation_notes.values()),
+        "conversation_errors": conversation_errors,
+        "reusable_lessons": reusable_lessons,
+        "reusable_lesson_errors": reuse_errors,
+        **graph,
+    }
+    print(json.dumps(report, ensure_ascii=False, indent=2))
+    healthy = not (
+        missing
+        or duplicate_projects
+        or duplicate_branches
+        or identity_errors
+        or local_errors
+        or conversation_errors
+        or reuse_errors
+        or graph["broken_links"]
+        or graph["orphans"]
+    )
+    return 0 if healthy else 1
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(json.dumps({"error": str(exc)}, ensure_ascii=False, indent=2))
+        raise SystemExit(1)
