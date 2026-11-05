@@ -56,6 +56,7 @@ install -m 0644 "${script_dir}/routine_runner.py" "${automation_root}/routine_ru
 install -m 0644 "${script_dir}/validate_vault.py" "${automation_root}/validate_vault.py"
 install -m 0644 "${script_dir}/reuse_memory.py" "${automation_root}/reuse_memory.py"
 install -m 0644 "${script_dir}/local_projects.py" "${automation_root}/local_projects.py"
+install -m 0644 "${script_dir}/conversations.py" "${automation_root}/conversations.py"
 cp -R -- "${plugin_root}/assets/prompts/." "${automation_root}/prompts/"
 
 systemd_escape() {
@@ -84,7 +85,7 @@ After=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory="${working_unit}"
-ExecStart="${python_unit}" "${runner_unit}" ${routine} --codex "${codex_unit}"
+ExecStart="${python_unit}" -X utf8 -B "${runner_unit}" ${routine} --codex "${codex_unit}"
 NoNewPrivileges=true
 EOF
 }

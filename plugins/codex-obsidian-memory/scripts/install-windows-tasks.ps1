@@ -1,6 +1,7 @@
 param(
     [switch]$Uninstall,
-    [string]$TaskPrefix = 'Codex Obsidian Memory'
+    [string]$TaskPrefix = 'Codex Obsidian Memory',
+    [string]$CodexPath
 )
 
 Set-StrictMode -Version Latest
@@ -32,6 +33,13 @@ if ($Uninstall) {
 $pythonPath = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'memoryctl.ps1') -Action prepare-runtime
 if ($LASTEXITCODE -ne 0 -or -not $pythonPath) { throw 'Plugin runtime preparation failed.' }
 $pythonPath = ([string]$pythonPath).Trim()
+if (-not $CodexPath) {
+    $codexCommand = Get-Command codex -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -eq $codexCommand) { throw 'Codex executable was not found. Supply -CodexPath with its absolute path.' }
+    $CodexPath = $codexCommand.Source
+}
+$CodexPath = (Resolve-Path -LiteralPath $CodexPath -ErrorAction Stop).Path
+if (-not (Test-Path -LiteralPath $CodexPath -PathType Leaf)) { throw 'Codex executable was not found.' }
 
 New-Item -ItemType Directory -Path $automationRoot -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $automationRoot 'prompts') -Force | Out-Null
@@ -40,6 +48,7 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'routine_runner.py') -Destinatio
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'validate_vault.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'reuse_memory.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'local_projects.py') -Destination $automationRoot -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'conversations.py') -Destination $automationRoot -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'run-hidden.vbs') -Destination $automationRoot -Force
 $pluginRoot = Split-Path -Parent $PSScriptRoot
 Copy-Item -Path (Join-Path $pluginRoot 'assets\prompts\*') -Destination (Join-Path $automationRoot 'prompts') -Recurse -Force
@@ -51,8 +60,8 @@ if (-not (Test-Path -LiteralPath $wscript)) {
     throw 'wscript.exe was not found.'
 }
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2) -Hidden
-$weeklyArguments = '"{0}" "{1}" "{2}" weekly' -f $hiddenRunner, $pythonPath, $runner
-$monthlyArguments = '"{0}" "{1}" "{2}" monthly' -f $hiddenRunner, $pythonPath, $runner
+$weeklyArguments = '//B //Nologo "{0}" "{1}" "{2}" weekly "{3}"' -f $hiddenRunner, $pythonPath, $runner, $CodexPath
+$monthlyArguments = '//B //Nologo "{0}" "{1}" "{2}" monthly "{3}"' -f $hiddenRunner, $pythonPath, $runner, $CodexPath
 $weeklyAction = New-ScheduledTaskAction -Execute $wscript -Argument $weeklyArguments -WorkingDirectory $automationRoot
 $monthlyAction = New-ScheduledTaskAction -Execute $wscript -Argument $monthlyArguments -WorkingDirectory $automationRoot
 $weeklyTrigger = New-ScheduledTaskTrigger -Daily -At '09:00'

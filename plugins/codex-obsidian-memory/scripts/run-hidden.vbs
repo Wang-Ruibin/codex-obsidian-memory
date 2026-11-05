@@ -2,7 +2,7 @@ Option Explicit
 On Error Resume Next
 
 Dim pythonPath, runnerPath, routine, shell, fileSystem, command, exitCode
-If WScript.Arguments.Count <> 3 Then
+If WScript.Arguments.Count <> 3 And WScript.Arguments.Count <> 4 Then
     WScript.Quit 2
 End If
 
@@ -22,7 +22,10 @@ command = """" & pythonPath & """"
 If LCase(fileSystem.GetFileName(pythonPath)) = "py.exe" Then
     command = command & " -3"
 End If
-command = command & " """ & runnerPath & """ " & routine
+command = command & " -X utf8 -B """ & runnerPath & """ " & routine
+If WScript.Arguments.Count = 4 Then
+    command = command & " --codex """ & WScript.Arguments(3) & """"
+End If
 
 Set shell = CreateObject("WScript.Shell")
 exitCode = shell.Run(command, 0, True)

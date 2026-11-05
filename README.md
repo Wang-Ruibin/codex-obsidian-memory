@@ -218,6 +218,8 @@ machine. Ask me before creating any scheduled task.
 
 Weekly briefs summarize progress; monthly audits review the notes and suggest maintenance. Scheduled runs need this computer to be available and Codex signed in. Monthly audits may recommend archiving notes but never delete, move or archive them automatically.
 
+After updating the plugin, ask Codex to update your existing routines while preserving their names, schedule and completed periods. Updating the plugin package alone does not refresh the scripts and prompts already copied for scheduled tasks.
+
 For platform-specific setup and removal, see the [automation guide](plugins/codex-obsidian-memory/skills/codex-obsidian-memory/references/automation.md).
 
 ## Adopt an existing vault

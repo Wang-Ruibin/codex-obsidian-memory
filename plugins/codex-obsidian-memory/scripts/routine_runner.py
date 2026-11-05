@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
-from memory_core import atomic_write, integration_dir, load_config, vault_path
+from memory_core import atomic_write, config_path, integration_dir, load_config, vault_path
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
@@ -38,6 +38,28 @@ def validator_path() -> Path:
     if installed_copy.is_file():
         return installed_copy
     return PLUGIN_ROOT / "scripts" / "validate_vault.py"
+
+
+def build_prompt(routine: str, config: dict, vault: Path, output: Path) -> str:
+    locale = str(config.get("locale") or "en")
+    prompt_file = prompt_path(routine, locale)
+    if not prompt_file.is_file():
+        raise ValueError(f"Routine prompt was not found: {prompt_file}")
+    keys = ("home", "global_memory", "maintenance", "project_index", "projects_dir",
+            "reuse_dir", "reuse_index", "conversations_dir", "conversation_index")
+    paths = "\n".join(f"- {key}: {vault_path(vault, config, key)}" for key in keys)
+    language = "Simplified Chinese" if locale == "zh-CN" else "English"
+    return (
+        prompt_file.read_text(encoding="utf-8")
+        + f"\n\nConfigured vault: {vault}\n"
+        + f"Update this exact report path: {output}\n"
+        + f"Resolved paths from the integration configuration (use these paths):\n{paths}\n"
+        + f"Integration configuration: {config_path()}\n"
+        + f"Current vault validator: {validator_path()}\n"
+        + "The runner validates the vault again before recording success. "
+        + "Do not use a legacy .automation/validate_graph.py as the current validator.\n"
+        + f"Write the report and visible knowledge-base writeback review in {language}.\n"
+    )
 
 
 def current_period(routine: str, now: datetime) -> str:
@@ -124,22 +146,14 @@ def main() -> int:
         codex = args.codex or shutil.which("codex")
         if not codex:
             raise ValueError("Codex executable was not found on PATH.")
-        locale = str(config.get("locale") or "en")
-        prompt_file = prompt_path(args.routine, locale)
-        if not prompt_file.is_file():
-            raise ValueError(f"Routine prompt was not found: {prompt_file}")
         output_key = "weekly_brief" if args.routine == "weekly" else "monthly_audit"
         output = vault_path(vault, config, output_key)
         output_content_before = output.read_bytes() if output.is_file() else None
-        prompt = (
-            prompt_file.read_text(encoding="utf-8")
-            + f"\n\nConfigured vault: {vault}\n"
-            + f"Update this exact report path: {output}\n"
-        )
+        prompt = build_prompt(args.routine, config, vault, output)
         preflight = ""
         if args.routine == "monthly":
             validation = subprocess.run(
-                [sys.executable, str(validator_path())],
+                [sys.executable, "-X", "utf8", "-B", str(validator_path())],
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -184,7 +198,7 @@ def main() -> int:
                 )
         if completed.returncode == 0 and not failure_reason:
             postflight = subprocess.run(
-                [sys.executable, str(validator_path())],
+                [sys.executable, "-X", "utf8", "-B", str(validator_path())],
                 text=True,
                 encoding="utf-8",
                 errors="replace",

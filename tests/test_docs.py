@@ -127,7 +127,7 @@ class DocumentationTests(unittest.TestCase):
         )
         self.assertEqual(manifest["author"]["name"], "Wang-Ruibin")
         self.assertEqual(manifest["interface"]["developerName"], "misakimei0331")
-        self.assertEqual(manifest["version"], "0.9.0")
+        self.assertEqual(manifest["version"], "0.9.1")
 
     def test_standalone_command_examples_are_localization_aligned(self) -> None:
         english = (STANDALONE / "references/usage.md").read_text(encoding="utf-8")
